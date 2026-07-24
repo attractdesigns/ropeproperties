@@ -52,5 +52,14 @@ export async function updateSession(request: NextRequest) {
     }
   }
 
+  // Pass pathname to headers so server components/layouts can access it
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-pathname", pathname);
+  supabaseResponse = NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
+
   return supabaseResponse;
 }
