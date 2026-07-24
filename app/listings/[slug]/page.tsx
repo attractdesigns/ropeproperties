@@ -10,6 +10,7 @@ import { AgentCard } from "@/components/AgentCard";
 import { ViewingForm } from "@/components/forms/ViewingForm";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { createClient } from "@/lib/supabase/server";
+import { getPrimaryRealtor } from "@/lib/realtor";
 import { getStorageUrl } from "@/lib/storage";
 import { formatPriceWithPeriod } from "@/lib/format";
 import type { PropertyWithRelations } from "@/lib/types";
@@ -64,6 +65,10 @@ export default async function PropertyDetailPage({
   const { slug } = await params;
   const property = await getProperty(slug);
   if (!property) notFound();
+
+  // Most listings aren't assigned to anyone — this is a one-realtor practice, so
+  // fall back to Opeoluwa rather than showing no contact at all.
+  const primaryRealtor = property.agents ? null : await getPrimaryRealtor();
 
   const isSoldOrLet = property.status === "sold" || property.status === "let";
   const location = [property.neighbourhood, property.city].filter(Boolean).join(", ");
@@ -193,7 +198,10 @@ export default async function PropertyDetailPage({
 
             {/* Sidebar: Agent + Form */}
             <div className="space-y-6">
-              <AgentCard agent={property.agents} context={property.title} />
+              <AgentCard
+                agent={property.agents ?? primaryRealtor}
+                context={property.title}
+              />
 
               {property.is_investment && (
                 <WhatsAppButton

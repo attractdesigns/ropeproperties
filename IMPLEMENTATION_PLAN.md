@@ -5,7 +5,19 @@
 
 ---
 
-## 0. Build status (updated 2026-07-24)
+## 0. Build status (updated 2026-07-25)
+
+**Realtor repositioning applied.** The site now presents Opeoluwa rather than a firm:
+wordmark sub-line, first-person copy across home/about/invest/contact/forms,
+`RealEstateAgent` structured data, `agents.is_primary` with fallback on every listing,
+a personal About page, and a testimonials feature (table, public sections, admin CRUD).
+Migration `00002_realtor_identity.sql` must be run alongside the original.
+
+Build, typecheck, and lint pass; public pages and the admin guard were re-smoke-tested.
+The pre-existing caveat still stands — no live Supabase credentials, so nothing has been
+run against a real database.
+
+
 
 Phases 1–6 are implemented. All 28 routes build, typecheck (`npx tsc --noEmit`) and lint clean,
 and every public page plus the admin guard was smoke-tested against a running server.
@@ -26,7 +38,14 @@ page itself loads, 404 handling, inquiry API honeypot / validation / rate limiti
 
 ## 1. Project summary
 
-A public marketing + listings website for **RopeProperties**, a Nigerian realtor firm, with a private, professional **admin dashboard** where staff add, edit, and remove property listings (with photo uploads) and review inquiries.
+A public marketing + listings website for **RopeProperties** — the practice of **Opeoluwa**, a Nigerian realtor — with a private, professional **admin dashboard** for managing listings (with photo uploads) and reviewing inquiries.
+
+**Positioning (decided 2026-07-25): an individual realtor, not a firm.** The name ROPE is coined from Opeoluwa, and the site says so. Consequences that run through the whole build:
+- **Voice is first person** — "I", never "we"/"our team"/"the firm".
+- **Wordmark** is `ROPE` over `REALTOR OPEOLUWA` (see §3).
+- **Opeoluwa is the face of every listing.** One agent row carries `is_primary`; any listing or opportunity without a specific agent falls back to her, so a human contact always appears.
+- **Support staff exist but stay quiet** — presented on About as "Working with me", not as a firm team grid.
+- **Trust comes from person + proof**, not corporate scale: a personal story with portrait, and **client testimonials**. Firm-scale vanity stats ("500+ homes sold") were deliberately removed — they undercut the solo positioning and were invented placeholders.
 
 The firm also offers **property investment**: clients can invest in opportunities the firm packages (off-plan developments, land banking, buy-to-let deals). The site presents a dedicated investment opportunities catalogue **and** can flag ordinary listings as investment-worthy. Returns are shown only as **indicative teaser ranges** (e.g. "15–20% p.a. projected") with a disclaimer; all commitments and payments happen **offline** — the site's job is to generate investment leads via a contact form and WhatsApp.
 
@@ -63,7 +82,7 @@ Supabase client usage: `@supabase/supabase-js` + `@supabase/ssr` for server comp
 
 ## 3. Brand & design system
 
-Since no logo exists, create a **typographic wordmark**: `ROPE` in the display serif, letter-spaced, with `PROPERTIES` in small caps sans underneath or beside it. Render it as an SVG component (`components/Logo.tsx`) so it scales crisply and can be reused in the footer/admin/favicon.
+Since no logo exists, create a **typographic wordmark**: `ROPE` in the display serif, letter-spaced, with `REALTOR OPEOLUWA` in small caps sans underneath — the sub-line explains where the name comes from, which is the whole positioning. It lives in `components/Logo.tsx` and is reused in the header, footer, and admin. Note the sub-line is longer than the old "PROPERTIES", so its size and tracking are tuned to sit flush under `ROPE` rather than overhanging it.
 
 **Typography (Google Fonts via `next/font`):**
 - Display/headlines: **Playfair Display** — used for hero lines, section titles, prices on detail pages, and the wordmark. High-contrast, editorial serif; keep it at generous sizes (it's a display face — don't use it below ~20px or for body text).
@@ -174,7 +193,21 @@ create table investment_images (
   alt text
 );
 
--- agents (team members)
+-- testimonials (client social proof — the main trust signal for a solo realtor)
+-- Added in migration 00002_realtor_identity.sql
+create table testimonials (
+  id uuid primary key default gen_random_uuid(),
+  created_at timestamptz not null default now(),
+  client_name text not null,
+  location text,                      -- e.g. 'Lekki Phase 1, Lagos'
+  quote text not null,
+  sort_order int not null default 0,
+  is_active boolean not null default true
+);
+
+-- agents (Opeoluwa + support staff)
+-- `is_primary` marks Opeoluwa: the public face used wherever no specific agent
+-- is assigned. A partial unique index enforces at most one primary agent.
 create table agents (
   id uuid primary key default gen_random_uuid(),
   name text not null,
@@ -183,7 +216,8 @@ create table agents (
   photo_path text,
   bio text,
   sort_order int not null default 0,
-  is_active boolean not null default true
+  is_active boolean not null default true,
+  is_primary boolean not null default false
 );
 
 -- inquiries (contact + viewing requests)

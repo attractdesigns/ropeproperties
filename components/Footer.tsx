@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Phone, Mail, MapPin, MessageCircle } from "lucide-react";
 import { Logo } from "./Logo";
+import { REALTOR_NAME, BUSINESS_NAME } from "@/lib/site";
 
 // TODO: Client to supply real contact details
 const OFFICE_ADDRESS = "12 Adeola Odeku Street, Victoria Island, Lagos";
@@ -25,7 +26,8 @@ export function Footer() {
           <div className="md:col-span-1">
             <Logo />
             <p className="mt-4 text-sm text-muted max-w-xs">
-              Premium Nigerian real estate. Buy, rent, and invest with confidence.
+              Buy, rent, and invest in Nigerian property — handled personally by{" "}
+              {REALTOR_NAME}.
             </p>
           </div>
 
@@ -87,7 +89,7 @@ export function Footer() {
 
         <div className="mt-10 pt-6 border-t border-line flex flex-col sm:flex-row justify-between items-center gap-4">
           <p className="text-xs text-muted">
-            © {new Date().getFullYear()} RopeProperties. All rights reserved.
+            © {new Date().getFullYear()} {BUSINESS_NAME}. All rights reserved.
           </p>
           <div className="flex gap-4 text-xs text-muted">
             {/* TODO: Add social links when provided */}

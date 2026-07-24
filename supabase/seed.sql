@@ -7,10 +7,21 @@
 -- Agents
 -- ─────────────────────────────────────────────────────────────────────────────
 
-insert into agents (id, name, role, phone, whatsapp, email, bio, sort_order, is_active) values
-  ('a0000001-0000-0000-0000-000000000001', 'Chidi Okafor', 'Senior Agent', '+234 803 123 4567', '2348031234567', 'chidi@ropeproperties.com', 'Chidi has over a decade of experience in Lagos luxury real estate, specialising in Lekki and Ikoyi.', 1, true),
-  ('a0000002-0000-0000-0000-000000000002', 'Aisha Bello', 'Investment Lead', '+234 805 234 5678', '2348052345678', 'aisha@ropeproperties.com', 'Aisha leads our investment advisory practice, helping clients identify high-yield opportunities.', 2, true),
-  ('a0000003-0000-0000-0000-000000000003', 'Tunde Adeyemi', 'Agent', '+234 807 345 6789', '2348073456789', 'tunde@ropeproperties.com', 'Tunde covers Abuja — Maitama, Gwarinpa, and surrounding areas.', 3, true);
+-- Opeoluwa is the primary realtor — the face of the site. The others are support
+-- staff shown more quietly on the About page.
+insert into agents (id, name, role, phone, whatsapp, email, bio, sort_order, is_active, is_primary) values
+  ('a0000001-0000-0000-0000-000000000001', 'Opeoluwa', 'Realtor', '+234 803 123 4567', '2348031234567', 'opeoluwa@ropeproperties.com', 'I have spent my career in the Lagos property market — Lekki, Ikoyi, Victoria Island, and increasingly Abuja. RopeProperties is built on my name, and I handle my clients personally.', 0, true, true),
+  ('a0000002-0000-0000-0000-000000000002', 'Aisha Bello', 'Client Coordinator', '+234 805 234 5678', '2348052345678', 'aisha@ropeproperties.com', 'Aisha coordinates viewings, paperwork, and scheduling.', 1, true, false),
+  ('a0000003-0000-0000-0000-000000000003', 'Tunde Adeyemi', 'Abuja Associate', '+234 807 345 6789', '2348073456789', 'tunde@ropeproperties.com', 'Tunde supports viewings in Abuja — Maitama, Gwarinpa, and surrounding areas.', 2, true, false);
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Testimonials
+-- ─────────────────────────────────────────────────────────────────────────────
+
+insert into testimonials (client_name, location, quote, sort_order, is_active) values
+  ('Adaeze N.', 'Lekki Phase 1, Lagos', 'Opeoluwa talked me out of the first house I fell in love with — the title was a mess. She found me a better one two months later. That honesty is why I have sent her three friends since.', 1, true),
+  ('Kunle A.', 'Maitama, Abuja', 'I was buying from abroad and expected the usual runaround. She sent video walkthroughs, answered every question directly, and the handover was exactly as described.', 2, true),
+  ('Ifeoma & Chidi O.', 'Ikoyi, Lagos', 'First-time buyers, completely lost. Opeoluwa explained every document and never made us feel rushed or foolish. We moved in last March.', 3, true);
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Partner Companies

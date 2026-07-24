@@ -31,6 +31,10 @@ export async function POST(request: NextRequest) {
     revalidatePath("/", "page");
   } else if (type === "inquiry") {
     ({ error } = await supabase.from("inquiries").delete().eq("id", id));
+  } else if (type === "testimonial") {
+    ({ error } = await supabase.from("testimonials").delete().eq("id", id));
+    revalidatePath("/about", "page");
+    revalidatePath("/", "page");
   } else {
     return NextResponse.json({ error: "Invalid type" }, { status: 400 });
   }

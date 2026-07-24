@@ -1,11 +1,18 @@
 # RopeProperties
 
-A premium real estate website for a Nigerian realtor firm, built with Next.js + Supabase.
+A premium real estate website for **Opeoluwa**, a Nigerian realtor — built with Next.js +
+Supabase. The name ROPE is coined from Opeoluwa, and the site is written as an individual
+practice rather than a firm: first-person voice throughout, Opeoluwa as the named contact
+on every listing, and client testimonials as the main trust signal.
+
+Brand strings (realtor name, wordmark sub-line, business name) live in one place:
+[`lib/site.ts`](lib/site.ts).
 
 ## Features
 
-- **Public site:** Home, Listings (with filters), Property detail (gallery, specs, agent card, viewing form), Investment opportunities catalogue + detail, About/Team, Contact
-- **Admin dashboard:** Login-protected, Listings CRUD with image manager, Investments CRUD, Inquiries inbox, Agents CRUD, Partners CRUD
+- **Public site:** Home, Listings (with filters), Property detail (gallery, specs, realtor card, viewing form), Investment opportunities catalogue + detail, About (personal story, testimonials, support staff, partners), Contact
+- **Admin dashboard:** Login-protected, Listings CRUD with image manager, Investments CRUD, Inquiries inbox, Agents CRUD, Testimonials CRUD, Partners CRUD
+- **Realtor identity:** one agent is flagged the *primary realtor* (Opeoluwa) and is shown automatically on any listing with no specific agent assigned
 - **Investment features:** Dedicated opportunities catalogue + `is_investment` flag on regular listings, ROI teaser ranges with disclaimer, lead capture forms + WhatsApp
 - **Nigeria-specific:** NGN pricing, m² areas, +234 phone formatting, WhatsApp deep links
 - **SEO:** Per-page metadata, OG images, JSON-LD structured data, sitemap, robots.txt
@@ -43,7 +50,8 @@ NEXT_PUBLIC_WHATSAPP_NUMBER=2348000000000
 
 1. Go to your Supabase project's SQL Editor
 2. Run `supabase/migrations/00001_initial.sql` — creates all tables, RLS policies, and storage bucket
-3. Run `supabase/seed.sql` — inserts sample data (10 properties, 4 investment opportunities, 3 agents, 2 partners, sample inquiries)
+3. Run `supabase/migrations/00002_realtor_identity.sql` — adds `agents.is_primary` and the testimonials table
+4. Run `supabase/seed.sql` — inserts sample data (10 properties, 4 investment opportunities, Opeoluwa + 2 support staff, 3 testimonials, 2 partners, sample inquiries)
 
 ### 4. Configure Supabase Auth
 
@@ -86,6 +94,22 @@ Visit `http://localhost:3000`.
 2. View all contact, viewing, and investment inquiries
 3. Click the phone/WhatsApp icons to contact the lead directly
 4. Toggle read/unread status
+
+### How to add a testimonial
+
+1. Go to **Testimonials** → fill in client name, location, and the quote
+2. Use **Sort order** to control which appears first (lower numbers come first)
+3. Save — it appears on the home page (first three) and the About page
+
+Only publish words a client has actually agreed to; these run under Opeoluwa's name.
+
+### Setting the primary realtor
+
+Under **Agents**, the *Primary realtor* checkbox marks who the site is built around.
+That person's photo and bio fill the About page, and they appear as the contact on any
+listing that has no specific agent assigned. Only one person can hold it — ticking the box
+for someone new moves it automatically. Upload Opeoluwa's portrait here; the About page
+uses it.
 
 ### How to add an investment opportunity
 
@@ -149,8 +173,11 @@ supabase/
 - Social media links
 - Final domain name
 - Real listing data (photos + details)
-- Agent photos and bios
-- Firm story copy edits
+- **A portrait of Opeoluwa** (upload via Admin → Agents on the primary realtor) — the About and home pages currently use placeholders
+- Opeoluwa's full legal name for `lib/site.ts` and structured data
+- Support staff photos and bios
+- Personal story copy edits on the About page (written as a first draft, in her voice)
+- Real client testimonials to replace the seeded examples
 - Real investment opportunities + ROI wording
 - Partner company names/logos/links
 - Legal review of investment disclaimer text

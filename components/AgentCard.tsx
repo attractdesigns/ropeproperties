@@ -21,7 +21,11 @@ export function AgentCard({ agent, context }: AgentCardProps) {
   return (
     <div className="border border-line p-6">
       <h3 className="font-display text-lg text-ink mb-4">
-        {agent.role === "Investment Lead" ? "Speak to an Advisor" : "Your Agent"}
+        {agent.is_primary
+          ? "Your Realtor"
+          : agent.role === "Investment Lead"
+            ? "Speak to an Advisor"
+            : "Your Contact"}
       </h3>
       <div className="flex items-center gap-4">
         <div className="relative w-16 h-16 shrink-0 bg-surface border border-line overflow-hidden">

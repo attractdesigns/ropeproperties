@@ -45,6 +45,18 @@ export type Agent = {
   bio: string | null;
   sort_order: number;
   is_active: boolean;
+  /** The realtor the site is built around. At most one agent has this set. */
+  is_primary: boolean;
+}
+
+export type Testimonial = {
+  id: string;
+  created_at: string;
+  client_name: string;
+  location: string | null;
+  quote: string;
+  sort_order: number;
+  is_active: boolean;
 }
 
 export type PropertyImage = {
@@ -178,6 +190,13 @@ export interface Database {
         Row: Agent;
         Insert: Pick<Agent, "name"> & Partial<Omit<Agent, "id" | "name">>;
         Update: Partial<Omit<Agent, "id">>;
+        Relationships: [];
+      };
+      testimonials: {
+        Row: Testimonial;
+        Insert: Pick<Testimonial, "client_name" | "quote"> &
+          Partial<Omit<Testimonial, "id" | "created_at" | "client_name" | "quote">>;
+        Update: Partial<Omit<Testimonial, "id" | "created_at">>;
         Relationships: [];
       };
       properties: {

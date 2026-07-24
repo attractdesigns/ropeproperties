@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, Home, Mail, Users, LogOut, TrendingUp, Handshake } from "lucide-react";
+import { LayoutDashboard, Home, Mail, Users, LogOut, TrendingUp, Handshake, Quote } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { cn } from "@/lib/utils";
 
@@ -12,6 +12,7 @@ const navItems = [
   { label: "Investments", href: "/admin/investments", icon: TrendingUp },
   { label: "Inquiries", href: "/admin/inquiries", icon: Mail },
   { label: "Agents", href: "/admin/agents", icon: Users },
+  { label: "Testimonials", href: "/admin/testimonials", icon: Quote },
   { label: "Partners", href: "/admin/partners", icon: Handshake },
 ];
 

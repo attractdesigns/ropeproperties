@@ -79,7 +79,7 @@ export function InvestmentInterestForm({
         <h3 className="font-display text-lg text-ink">Thank you</h3>
         <p className="mt-2 text-sm text-muted">
           Your interest in <span className="text-ink">{opportunityTitle}</span> has
-          been registered. Our team will be in touch shortly.
+          been registered. I&apos;ll be in touch shortly.
         </p>
         <button
           onClick={() => setSubmitted(false)}

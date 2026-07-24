@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, Phone } from "lucide-react";
+import { ArrowRight, Phone, Quote } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Section, SectionTitle } from "@/components/Section";
@@ -8,6 +8,8 @@ import { PropertyCard } from "@/components/PropertyCard";
 import { OpportunityCard } from "@/components/OpportunityCard";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { createClient } from "@/lib/supabase/server";
+import { getTestimonials } from "@/lib/realtor";
+import { REALTOR_NAME, BUSINESS_NAME } from "@/lib/site";
 import type { PropertyWithRelations, InvestmentWithRelations } from "@/lib/types";
 
 export const revalidate = 60;
@@ -73,7 +75,8 @@ export default function HomePage() {
                 Find a place you&apos;ll love to call home
               </h1>
               <p className="mt-6 text-white/80 text-lg max-w-md mx-auto">
-                Premium Nigerian real estate — buy, rent, and invest with confidence.
+                Buy, rent, and invest in Nigerian property — guided personally by{" "}
+                {REALTOR_NAME}.
               </p>
               <Link
                 href="/listings"
@@ -92,27 +95,29 @@ export default function HomePage() {
         {/* About Teaser */}
         <Section background="surface">
           <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div className="aspect-[4/3] relative bg-surface border border-line">
+            {/* TODO: replace with a portrait of Opeoluwa — this placeholder is a
+                stand-in so the section doesn't read as a corporate office shot. */}
+            <div className="aspect-[4/5] relative bg-surface border border-line">
               <Image
-                src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=80"
-                alt="RopeProperties office"
+                src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=800&q=80"
+                alt={`${REALTOR_NAME}, realtor`}
                 fill
                 sizes="(max-width: 768px) 100vw, 50vw"
                 className="object-cover"
               />
             </div>
             <div>
-              <SectionTitle>About RopeProperties</SectionTitle>
+              <SectionTitle>Hello, I&apos;m {REALTOR_NAME}</SectionTitle>
               <p className="mt-4 text-muted leading-relaxed">
-                A Lagos-based real estate firm helping clients buy, rent, and invest
-                in premium Nigerian property since 2015. We combine deep local
-                expertise with a long-term view — so you can make confident decisions.
+                {BUSINESS_NAME} is built on my name — R.O.P.E. comes from Opeoluwa. I
+                help clients buy, rent, and invest across Lagos and Abuja, and I handle
+                my clients personally, from first viewing through to handover.
               </p>
               <Link
                 href="/about"
                 className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-accent hover:text-accent-deep transition-colors"
               >
-                Our Story
+                More about me
                 <ArrowRight size={16} />
               </Link>
             </div>
@@ -122,7 +127,7 @@ export default function HomePage() {
         {/* Services Strip */}
         <Section>
           <SectionTitle align="center" className="mb-12">
-            How we can help
+            How I can help
           </SectionTitle>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {services.map((service) => (
@@ -143,12 +148,16 @@ export default function HomePage() {
         {/* Investment Teaser */}
         <InvestmentTeaser />
 
+        {/* Social proof */}
+        <Testimonials />
+
         {/* CTA Band */}
         <Section background="surface">
           <div className="text-center max-w-xl mx-auto">
             <SectionTitle>Looking for something specific?</SectionTitle>
             <p className="mt-4 text-muted">
-              Tell us what you need — we&apos;ll find it.
+              Tell me what you need and I&apos;ll find it — or tell you honestly if it
+              isn&apos;t out there.
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-4">
               <Link
@@ -156,9 +165,13 @@ export default function HomePage() {
                 className="inline-flex items-center gap-2 bg-ink text-white px-6 py-3 text-sm font-medium hover:bg-accent transition-colors"
               >
                 <Phone size={16} />
-                Contact Us
+                Get in touch
               </Link>
-              <WhatsAppButton label="WhatsApp Us" variant="outline" />
+              <WhatsAppButton
+                label={`WhatsApp ${REALTOR_NAME}`}
+                variant="outline"
+                message={`Hello ${REALTOR_NAME}, I'd like to talk about a property.`}
+              />
             </div>
           </div>
         </Section>
@@ -187,6 +200,34 @@ async function FeaturedProperties() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-10">
         {properties.map((property) => (
           <PropertyCard key={property.id} property={property} />
+        ))}
+      </div>
+    </Section>
+  );
+}
+
+async function Testimonials() {
+  const testimonials = (await getTestimonials()).slice(0, 3);
+
+  if (testimonials.length === 0) return null;
+
+  return (
+    <Section>
+      <SectionTitle align="center" className="mb-10">
+        What my clients say
+      </SectionTitle>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {testimonials.map((t) => (
+          <figure key={t.id} className="border border-line p-6 flex flex-col">
+            <Quote size={20} className="text-accent shrink-0" aria-hidden />
+            <blockquote className="mt-4 text-muted leading-relaxed flex-1">
+              {t.quote}
+            </blockquote>
+            <figcaption className="mt-5 pt-4 border-t border-line">
+              <p className="text-sm font-medium text-ink">{t.client_name}</p>
+              {t.location && <p className="text-xs text-muted mt-0.5">{t.location}</p>}
+            </figcaption>
+          </figure>
         ))}
       </div>
     </Section>

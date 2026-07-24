@@ -4,6 +4,7 @@ import { Section, SectionTitle } from "@/components/Section";
 import { OpportunityCard } from "@/components/OpportunityCard";
 import { PropertyCard } from "@/components/PropertyCard";
 import { createClient } from "@/lib/supabase/server";
+import { REALTOR_NAME } from "@/lib/site";
 import type {
   InvestmentWithRelations,
   PropertyWithRelations,
@@ -43,9 +44,9 @@ async function getInvestmentListings() {
 }
 
 const steps = [
-  { number: "1", title: "Enquire", description: "Tell us your goals and budget — we'll match you with the right opportunity." },
-  { number: "2", title: "Meet the team", description: "We'll walk you through the details, answer your questions, and share projections." },
-  { number: "3", title: "Invest offline", description: "All commitments and payments happen directly with us — no online transactions." },
+  { number: "1", title: "Enquire", description: "Tell me your goals and budget — I'll match you with the right opportunity." },
+  { number: "2", title: "Meet me", description: "I'll walk you through the details, answer your questions, and share projections." },
+  { number: "3", title: "Invest offline", description: "All commitments and payments happen directly with me — no online transactions." },
 ];
 
 export default async function InvestPage() {
@@ -70,12 +71,12 @@ export default async function InvestPage() {
         {/* Intro */}
         <Section>
           <div className="max-w-2xl">
-            <SectionTitle>Invest with RopeProperties</SectionTitle>
+            <SectionTitle>Invest with {REALTOR_NAME}</SectionTitle>
             <p className="mt-4 text-muted leading-relaxed">
-              We package premium Nigerian real estate investment opportunities — from
-              off-plan developments to land banking and buy-to-let deals. Our team
-              helps you identify, evaluate, and commit to opportunities that align with
-              your goals.
+              I package premium Nigerian real estate investment opportunities — from
+              off-plan developments to land banking and buy-to-let deals — and I&apos;ll
+              help you identify, evaluate, and commit to the ones that actually fit your
+              goals.
             </p>
           </div>
 
@@ -125,7 +126,7 @@ export default async function InvestPage() {
             <p className="text-sm text-muted leading-relaxed">
               <strong className="text-ink">Disclaimer:</strong> Projected figures are
               indicative estimates, not guarantees. Investments carry risk. All terms,
-              commitments, and payments are discussed directly with our team — no
+              commitments, and payments are discussed directly with me — no
               transactions are processed on this website.
             </p>
           </div>

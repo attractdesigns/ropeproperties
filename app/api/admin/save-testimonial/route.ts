@@ -11,32 +11,20 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
-  const isPrimary = body.is_primary === true;
 
-  // Only one agent may be the primary realtor (enforced by a unique index), so
-  // stand the current one down before promoting a new one.
-  if (isPrimary) {
-    const { error: demoteError } = await supabase
-      .from("agents")
-      .update({ is_primary: false })
-      .eq("is_primary", true);
-
-    if (demoteError) {
-      return NextResponse.json({ error: demoteError.message }, { status: 500 });
-    }
+  if (!body.client_name || !body.quote) {
+    return NextResponse.json(
+      { error: "Client name and quote are required" },
+      { status: 400 }
+    );
   }
 
-  const { error } = await supabase.from("agents").insert({
-    name: body.name,
-    role: body.role,
-    phone: body.phone,
-    whatsapp: body.whatsapp,
-    email: body.email,
-    bio: body.bio,
-    photo_path: body.photo_path,
+  const { error } = await supabase.from("testimonials").insert({
+    client_name: String(body.client_name),
+    location: body.location ?? null,
+    quote: String(body.quote),
     sort_order: body.sort_order ?? 0,
     is_active: body.is_active ?? true,
-    is_primary: isPrimary,
   });
 
   if (error) {

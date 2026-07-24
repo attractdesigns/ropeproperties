@@ -41,6 +41,7 @@ export function AgentForm() {
       photo_path: photoPath,
       sort_order: 0,
       is_active: true,
+      is_primary: formData.get("is_primary") === "on",
     };
 
     try {
@@ -106,6 +107,23 @@ export function AgentForm() {
       <div className="md:col-span-2">
         <label className={labelClass}>Bio</label>
         <textarea name="bio" rows={2} className={inputClass} />
+      </div>
+      <div className="md:col-span-2 border border-line bg-surface p-3">
+        <label className="flex items-start gap-2 text-sm text-ink">
+          <input
+            type="checkbox"
+            name="is_primary"
+            className="accent-accent mt-0.5"
+          />
+          <span>
+            Primary realtor
+            <span className="block text-xs text-muted mt-0.5">
+              The face of the site. Shown on the About page and on every listing that
+              has no specific agent assigned. Only one person can hold this — ticking it
+              moves it from whoever has it now.
+            </span>
+          </span>
+        </label>
       </div>
       {error && <p className="text-sm text-red-600 md:col-span-2">{error}</p>}
       {success && <p className="text-sm text-accent md:col-span-2">Agent saved!</p>}

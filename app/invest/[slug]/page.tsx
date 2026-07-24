@@ -10,8 +10,10 @@ import { AgentCard } from "@/components/AgentCard";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { InvestmentInterestForm } from "@/components/forms/InvestmentInterestForm";
 import { createClient } from "@/lib/supabase/server";
+import { getPrimaryRealtor } from "@/lib/realtor";
 import { getStorageUrl } from "@/lib/storage";
 import { formatPriceCompact } from "@/lib/format";
+import { REALTOR_NAME } from "@/lib/site";
 import type { InvestmentWithRelations } from "@/lib/types";
 import { MapPin, TrendingUp, Wallet, Clock, Building } from "lucide-react";
 
@@ -71,6 +73,9 @@ export default async function OpportunityDetailPage({
   const { slug } = await params;
   const opportunity = await getOpportunity(slug);
   if (!opportunity) notFound();
+
+  // Fall back to Opeoluwa when no specific advisor is assigned.
+  const primaryRealtor = opportunity.agents ? null : await getPrimaryRealtor();
 
   const isClosed = opportunity.status === "closed";
   const location = [opportunity.neighbourhood, opportunity.city].filter(Boolean).join(", ");
@@ -138,13 +143,16 @@ export default async function OpportunityDetailPage({
 
             {/* Sidebar */}
             <div className="space-y-6">
-              <AgentCard agent={opportunity.agents} context={opportunity.title} />
+              <AgentCard
+                agent={opportunity.agents ?? primaryRealtor}
+                context={opportunity.title}
+              />
 
               {!isClosed && (
                 <>
                   <WhatsAppButton
                     message={`Hello, I'm interested in "${opportunity.title}". Please get in touch.`}
-                    label="WhatsApp Us"
+                    label={`WhatsApp ${REALTOR_NAME}`}
                     variant="solid"
                     className="w-full justify-center"
                   />
@@ -176,7 +184,7 @@ export default async function OpportunityDetailPage({
             <p className="text-sm text-muted leading-relaxed">
               <strong className="text-ink">Disclaimer:</strong> Projected figures are
               indicative estimates, not guarantees. Investments carry risk. All terms,
-              commitments, and payments are discussed directly with our team.
+              commitments, and payments are discussed directly with me.
             </p>
           </div>
         </Section>

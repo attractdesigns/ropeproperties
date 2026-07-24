@@ -9,6 +9,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Section, SectionTitle } from "@/components/Section";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
+import { REALTOR_NAME } from "@/lib/site";
 
 const contactSchema = z.object({
   name: z.string().min(2, "Please enter your name"),
@@ -83,8 +84,8 @@ export default function ContactPage() {
         <Section>
           <SectionTitle>Get in Touch</SectionTitle>
           <p className="mt-4 text-muted max-w-lg">
-            Whether you&apos;re buying, renting, investing, or looking to sell — we&apos;re
-            here to help. Send us a message or reach us directly.
+            Whether you&apos;re buying, renting, investing, or looking to sell,
+            I&apos;m here to help. Send me a message or reach me directly.
           </p>
 
           <div className="mt-12 grid md:grid-cols-2 gap-12">
@@ -196,7 +197,7 @@ export default function ContactPage() {
                 </div>
 
                 <div className="pt-2">
-                  <WhatsAppButton label="WhatsApp Us" variant="solid" />
+                  <WhatsAppButton label={`WhatsApp ${REALTOR_NAME}`} variant="solid" />
                 </div>
               </div>
 
