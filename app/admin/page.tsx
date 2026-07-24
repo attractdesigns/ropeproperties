@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { formatPhoneDisplay } from "@/lib/format";
 import { Phone, MessageCircle } from "lucide-react";
 
 export const dynamic = "force-dynamic";
