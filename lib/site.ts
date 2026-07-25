@@ -5,10 +5,10 @@
  * name, so the site speaks in the first person and Opeoluwa is the face on
  * every listing. Support staff exist but are presented as help, not as a firm.
  *
- * TODO: client to confirm full legal name and founding year.
  */
 export const REALTOR_NAME = "Opeoluwa";
-export const REALTOR_FULL_NAME = "Opeoluwa"; // add surname once confirmed
+/** Full name — used in page titles and RealEstateAgent structured data. */
+export const REALTOR_FULL_NAME = "Opeoluwa Adebayo";
 export const REALTOR_TITLE = "Realtor";
 export const BUSINESS_NAME = "RopeProperties";
 

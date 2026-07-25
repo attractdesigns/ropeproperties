@@ -1,9 +1,10 @@
 import Image from "next/image";
-import { Phone, Mail, ExternalLink, Quote } from "lucide-react";
+import { Phone, Mail, Quote } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Section, SectionTitle } from "@/components/Section";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
+import { PartnerModal } from "@/components/PartnerModal";
 import { createClient } from "@/lib/supabase/server";
 import { getStorageUrl } from "@/lib/storage";
 import { getPrimaryRealtor, getSupportStaff, getTestimonials } from "@/lib/realtor";
@@ -23,6 +24,22 @@ async function getPartners(): Promise<PartnerCompany[]> {
   return data ?? [];
 }
 
+/** Shown only until the primary realtor writes her own bio in the admin. */
+const FALLBACK_STORY = [
+  `${BUSINESS_NAME} is built on my name — R.O.P.E. comes from Opeoluwa. That is deliberate: when you work with me, you are not passed between departments or handed to whoever is free. You deal with me.`,
+  "I have spent my career in the Lagos property market — Lekki, Ikoyi, Victoria Island, and increasingly Abuja. I know which estates hold their value, which titles are worth the paperwork, and which deals are best walked away from.",
+  "Whether you are buying your first home, renting while you settle into the city, or putting money to work in an investment, my job is to give you a straight answer and see it through to handover.",
+];
+
+function splitParagraphs(text: string | null | undefined): string[] | null {
+  if (!text?.trim()) return null;
+  const paragraphs = text
+    .split(/\n\s*\n/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+  return paragraphs.length > 0 ? paragraphs : null;
+}
+
 export const metadata = {
   title: `About ${REALTOR_NAME}`,
   description: `Meet ${REALTOR_NAME}, the realtor behind ${BUSINESS_NAME} — how I work, who I work with, and what my clients say.`,
@@ -37,6 +54,10 @@ export default async function AboutPage() {
   ]);
 
   const portraitUrl = getStorageUrl(realtor?.photo_path);
+
+  // Her story comes from the primary realtor's bio so she can edit it herself in
+  // the admin. Blank lines separate paragraphs.
+  const storyParagraphs = splitParagraphs(realtor?.bio) ?? FALLBACK_STORY;
 
   return (
     <>
@@ -69,25 +90,14 @@ export default async function AboutPage() {
               </p>
               <SectionTitle>Hello, I&apos;m {REALTOR_NAME}</SectionTitle>
 
-              {/* TODO: client to edit this story in her own words. */}
-              <p className="mt-4 text-muted leading-relaxed">
-                {BUSINESS_NAME} is built on my name — <strong className="text-ink">R.O.P.E.</strong>{" "}
-                comes from Opeoluwa. That is deliberate: when you work with me, you are
-                not passed between departments or handed to whoever is free. You deal
-                with me.
-              </p>
-              <p className="mt-4 text-muted leading-relaxed">
-                I have spent my career in the Lagos property market — Lekki, Ikoyi,
-                Victoria Island, and increasingly Abuja. I know which estates hold their
-                value, which titles are worth the paperwork, and which deals are best
-                walked away from. I would rather lose a sale than put a client into the
-                wrong property.
-              </p>
-              <p className="mt-4 text-muted leading-relaxed">
-                Whether you are buying your first home, renting while you settle into the
-                city, or putting money to work in an investment, my job is to give you a
-                straight answer and see it through to handover.
-              </p>
+              {/* Editable from Admin → Agents on the primary realtor's Bio field.
+                  The fallback below is only a first draft, shown until she writes
+                  her own. */}
+              {storyParagraphs.map((paragraph, i) => (
+                <p key={i} className="mt-4 text-muted leading-relaxed">
+                  {paragraph}
+                </p>
+              ))}
 
               <div className="mt-8 flex flex-wrap items-center gap-3">
                 {realtor?.phone && (
@@ -225,16 +235,7 @@ export default async function AboutPage() {
                     {partner.description && (
                       <p className="text-sm text-muted">{partner.description}</p>
                     )}
-                    {partner.website_url && (
-                      <a
-                        href={partner.website_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mt-3 inline-flex items-center gap-1 text-sm text-accent hover:text-accent-deep"
-                      >
-                        Visit website <ExternalLink size={12} />
-                      </a>
-                    )}
+                    <PartnerModal partner={partner} />
                   </div>
                 );
               })}

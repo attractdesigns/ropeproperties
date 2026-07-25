@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, Home, Mail, Users, LogOut, TrendingUp, Handshake, Quote } from "lucide-react";
+import { LayoutDashboard, Home, Mail, Users, LogOut, TrendingUp, Handshake, Quote, Settings } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { cn } from "@/lib/utils";
 
@@ -14,6 +14,7 @@ const navItems = [
   { label: "Agents", href: "/admin/agents", icon: Users },
   { label: "Testimonials", href: "/admin/testimonials", icon: Quote },
   { label: "Partners", href: "/admin/partners", icon: Handshake },
+  { label: "Site settings", href: "/admin/settings", icon: Settings },
 ];
 
 export function AdminSidebar({ userEmail }: { userEmail: string }) {

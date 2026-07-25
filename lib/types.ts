@@ -49,6 +49,15 @@ export type Agent = {
   is_primary: boolean;
 }
 
+/** Single-row table (id is always 1) holding editable homepage hero content. */
+export type SiteSettings = {
+  id: number;
+  updated_at: string;
+  hero_image_path: string | null;
+  hero_heading: string | null;
+  hero_subheading: string | null;
+}
+
 export type Testimonial = {
   id: string;
   created_at: string;
@@ -190,6 +199,12 @@ export interface Database {
         Row: Agent;
         Insert: Pick<Agent, "name"> & Partial<Omit<Agent, "id" | "name">>;
         Update: Partial<Omit<Agent, "id">>;
+        Relationships: [];
+      };
+      site_settings: {
+        Row: SiteSettings;
+        Insert: Partial<SiteSettings>;
+        Update: Partial<Omit<SiteSettings, "id">>;
         Relationships: [];
       };
       testimonials: {

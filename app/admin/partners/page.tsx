@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getStorageUrl } from "@/lib/storage";
 import { PartnerForm } from "@/components/admin/PartnerForm";
@@ -68,7 +69,15 @@ export default async function AdminPartnersPage() {
                     <td className="p-3 text-sm text-muted max-w-xs truncate">{partner.description ?? "—"}</td>
                     <td className="p-3 text-sm">{partner.is_active ? "✓" : "—"}</td>
                     <td className="p-3">
-                      <DeleteButton id={partner.id} type="partner" title={partner.name} />
+                      <div className="flex items-center gap-3">
+                        <Link
+                          href={`/admin/partners/${partner.id}/edit`}
+                          className="text-sm text-accent hover:text-accent-deep"
+                        >
+                          Edit
+                        </Link>
+                        <DeleteButton id={partner.id} type="partner" title={partner.name} />
+                      </div>
                     </td>
                   </tr>
                 );

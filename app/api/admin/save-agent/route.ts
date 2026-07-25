@@ -12,21 +12,31 @@ export async function POST(request: NextRequest) {
 
   const body = await request.json();
   const isPrimary = body.is_primary === true;
+  const id: string | undefined = body.id;
+
+  if (!body.name) {
+    return NextResponse.json({ error: "Name is required" }, { status: 400 });
+  }
 
   // Only one agent may be the primary realtor (enforced by a unique index), so
-  // stand the current one down before promoting a new one.
+  // stand the current one down before promoting a new one. Exclude the record
+  // being saved — otherwise an edit demotes the very row it is about to promote,
+  // and the primary realtor silently disappears from the site.
   if (isPrimary) {
-    const { error: demoteError } = await supabase
+    let demote = supabase
       .from("agents")
       .update({ is_primary: false })
       .eq("is_primary", true);
 
+    if (id) demote = demote.neq("id", id);
+
+    const { error: demoteError } = await demote;
     if (demoteError) {
       return NextResponse.json({ error: demoteError.message }, { status: 500 });
     }
   }
 
-  const { error } = await supabase.from("agents").insert({
+  const record = {
     name: body.name,
     role: body.role,
     phone: body.phone,
@@ -37,7 +47,11 @@ export async function POST(request: NextRequest) {
     sort_order: body.sort_order ?? 0,
     is_active: body.is_active ?? true,
     is_primary: isPrimary,
-  });
+  };
+
+  const { error } = id
+    ? await supabase.from("agents").update(record).eq("id", id)
+    : await supabase.from("agents").insert(record);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -45,6 +59,8 @@ export async function POST(request: NextRequest) {
 
   revalidatePath("/about", "page");
   revalidatePath("/", "page");
+  revalidatePath("/listings", "page");
+  revalidatePath("/invest", "page");
 
   return NextResponse.json({ success: true });
 }

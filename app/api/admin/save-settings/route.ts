@@ -11,30 +11,20 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
-  const id: string | undefined = body.id;
 
-  if (!body.name) {
-    return NextResponse.json({ error: "Name is required" }, { status: 400 });
-  }
-
-  const record = {
-    name: body.name,
-    website_url: body.website_url,
-    description: body.description,
-    logo_path: body.logo_path,
-    sort_order: body.sort_order ?? 0,
-    is_active: body.is_active ?? true,
-  };
-
-  const { error } = id
-    ? await supabase.from("partner_companies").update(record).eq("id", id)
-    : await supabase.from("partner_companies").insert(record);
+  // The settings row is created by the migration, but upsert so a missing row
+  // repairs itself rather than silently saving nothing.
+  const { error } = await supabase.from("site_settings").upsert({
+    id: 1,
+    hero_image_path: body.hero_image_path ?? null,
+    hero_heading: body.hero_heading ?? null,
+    hero_subheading: body.hero_subheading ?? null,
+  });
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  revalidatePath("/about", "page");
   revalidatePath("/", "page");
 
   return NextResponse.json({ success: true });

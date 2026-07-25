@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getStorageUrl } from "@/lib/storage";
 import { AgentForm } from "@/components/admin/AgentForm";
@@ -65,12 +66,27 @@ export default async function AdminAgentsPage() {
                         )}
                       </div>
                     </td>
-                    <td className="p-3 text-sm font-medium text-ink">{agent.name}</td>
+                    <td className="p-3 text-sm font-medium text-ink">
+                      {agent.name}
+                      {agent.is_primary && (
+                        <span className="ml-2 text-xs uppercase tracking-wide bg-accent-tint text-accent-deep px-1.5 py-0.5">
+                          Primary
+                        </span>
+                      )}
+                    </td>
                     <td className="p-3 text-sm text-muted">{agent.role}</td>
                     <td className="p-3 text-sm text-muted">{agent.phone ?? "—"}</td>
                     <td className="p-3 text-sm">{agent.is_active ? "✓" : "—"}</td>
                     <td className="p-3">
-                      <DeleteButton id={agent.id} type="agent" title={agent.name} />
+                      <div className="flex items-center gap-3">
+                        <Link
+                          href={`/admin/agents/${agent.id}/edit`}
+                          className="text-sm text-accent hover:text-accent-deep"
+                        >
+                          Edit
+                        </Link>
+                        <DeleteButton id={agent.id} type="agent" title={agent.name} />
+                      </div>
                     </td>
                   </tr>
                 );

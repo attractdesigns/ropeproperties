@@ -108,8 +108,21 @@ Only publish words a client has actually agreed to; these run under Opeoluwa's n
 Under **Agents**, the *Primary realtor* checkbox marks who the site is built around.
 That person's photo and bio fill the About page, and they appear as the contact on any
 listing that has no specific agent assigned. Only one person can hold it — ticking the box
-for someone new moves it automatically. Upload Opeoluwa's portrait here; the About page
-uses it.
+for someone new moves it automatically.
+
+### Editing Opeoluwa's photo and story (no developer needed)
+
+1. Go to **Agents** and click **Edit** on Opeoluwa's row
+2. **Photo** — the current portrait is shown; click *Replace photo* to swap it. A
+   portrait-orientation image works best, as the About page displays it tall
+3. **Bio / story** — this is the text under "Hello, I'm Opeoluwa" on the About page.
+   Write it in her own voice and **leave a blank line between paragraphs**; each block
+   becomes its own paragraph on the page
+4. **Role** — the small label above the heading (e.g. "Realtor")
+5. Save — the About and home pages update immediately
+
+If the bio is left empty, the site falls back to a placeholder story written as a first
+draft. Replace it before launch.
 
 ### How to add an investment opportunity
 
@@ -144,7 +157,8 @@ app/
     listings/     # Listings CRUD
     investments/  # Investment opportunities CRUD
     inquiries/    # Inquiries inbox
-    agents/       # Agents CRUD
+    agents/       # Agents CRUD (+ [id]/edit — photo, bio, primary realtor)
+    testimonials/ # Client testimonials CRUD
     partners/     # Partners CRUD
   api/
     inquiries/    # Public inquiry submission
@@ -176,7 +190,7 @@ supabase/
 - **A portrait of Opeoluwa** (upload via Admin → Agents on the primary realtor) — the About and home pages currently use placeholders
 - Opeoluwa's full legal name for `lib/site.ts` and structured data
 - Support staff photos and bios
-- Personal story copy edits on the About page (written as a first draft, in her voice)
+- Personal story copy edits (written as a first draft — now editable via Admin → Agents → Edit, no code change needed)
 - Real client testimonials to replace the seeded examples
 - Real investment opportunities + ROI wording
 - Partner company names/logos/links

@@ -10,7 +10,11 @@
 -- Opeoluwa is the primary realtor — the face of the site. The others are support
 -- staff shown more quietly on the About page.
 insert into agents (id, name, role, phone, whatsapp, email, bio, sort_order, is_active, is_primary) values
-  ('a0000001-0000-0000-0000-000000000001', 'Opeoluwa', 'Realtor', '+234 803 123 4567', '2348031234567', 'opeoluwa@ropeproperties.com', 'I have spent my career in the Lagos property market — Lekki, Ikoyi, Victoria Island, and increasingly Abuja. RopeProperties is built on my name, and I handle my clients personally.', 0, true, true),
+  ('a0000001-0000-0000-0000-000000000001', 'Opeoluwa', 'Realtor', '+234 803 123 4567', '2348031234567', 'opeoluwa@ropeproperties.com', 'RopeProperties is built on my name — R.O.P.E. comes from Opeoluwa. That is deliberate: when you work with me, you are not passed between departments or handed to whoever is free. You deal with me.
+
+I have spent my career in the Lagos property market — Lekki, Ikoyi, Victoria Island, and increasingly Abuja. I know which estates hold their value, which titles are worth the paperwork, and which deals are best walked away from.
+
+Whether you are buying your first home, renting while you settle into the city, or putting money to work in an investment, my job is to give you a straight answer and see it through to handover.', 0, true, true),
   ('a0000002-0000-0000-0000-000000000002', 'Aisha Bello', 'Client Coordinator', '+234 805 234 5678', '2348052345678', 'aisha@ropeproperties.com', 'Aisha coordinates viewings, paperwork, and scheduling.', 1, true, false),
   ('a0000003-0000-0000-0000-000000000003', 'Tunde Adeyemi', 'Abuja Associate', '+234 807 345 6789', '2348073456789', 'tunde@ropeproperties.com', 'Tunde supports viewings in Abuja — Maitama, Gwarinpa, and surrounding areas.', 2, true, false);
 
