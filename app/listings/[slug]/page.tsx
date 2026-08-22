@@ -70,7 +70,7 @@ export default async function PropertyDetailPage({
   // fall back to Opeoluwa rather than showing no contact at all.
   const primaryRealtor = property.agents ? null : await getPrimaryRealtor();
 
-  const isSoldOrLet = property.status === "sold" || property.status === "let";
+  const isSold = property.status === "sold";
   const location = [property.neighbourhood, property.city].filter(Boolean).join(", ");
 
   const jsonLd = {
@@ -212,7 +212,7 @@ export default async function PropertyDetailPage({
                 />
               )}
 
-              {!isSoldOrLet && (
+              {!isSold && (
                 <ViewingForm
                   propertyId={property.id}
                   propertyTitle={property.title}
@@ -220,7 +220,7 @@ export default async function PropertyDetailPage({
                 />
               )}
 
-              {isSoldOrLet && (
+              {isSold && (
                 <div className="border border-line p-6 text-center bg-surface">
                   <p className="text-muted">
                     This property is no longer available.

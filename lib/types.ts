@@ -1,6 +1,6 @@
 // Database types for RopeProperties
 
-export type PropertyStatus = "draft" | "for_sale" | "for_rent" | "sold" | "let";
+export type PropertyStatus = "draft" | "for_sale" | "sold";
 export type PropertyType =
   | "apartment"
   | "house"

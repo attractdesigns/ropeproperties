@@ -110,7 +110,7 @@ export default async function InvestPage() {
             <SectionTitle className="mb-10">Investment-Grade Listings</SectionTitle>
             <p className="text-muted mb-8 max-w-xl">
               These featured listings have been flagged as investment-worthy, with
-              strong rental or appreciation potential.
+              strong yield or appreciation potential.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-10">
               {investmentListings.map((property) => (

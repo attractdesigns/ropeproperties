@@ -2,9 +2,7 @@ import { cn } from "@/lib/utils";
 
 const statusConfig: Record<string, { label: string; className: string }> = {
   for_sale: { label: "For Sale", className: "bg-ink text-white" },
-  for_rent: { label: "For Rent", className: "bg-accent text-white" },
   sold: { label: "Sold", className: "bg-muted text-white" },
-  let: { label: "Let", className: "bg-muted text-white" },
   draft: { label: "Draft", className: "bg-surface text-muted border border-line" },
 };
 

@@ -204,36 +204,20 @@ export function ListingForm({ property, images: existingImages, agents, partners
               >
                 <option value="draft">Draft</option>
                 <option value="for_sale">For Sale</option>
-                <option value="for_rent">For Rent</option>
                 <option value="sold">Sold</option>
-                <option value="let">Let</option>
               </select>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className={labelClass}>Price (NGN) *</label>
-              <input
-                className={inputClass}
-                type="number"
-                value={form.price}
-                onChange={(e) => handleChange("price", e.target.value)}
-                required
-              />
-            </div>
-
-            <div>
-              <label className={labelClass}>Price Period</label>
-              <select
-                className={inputClass}
-                value={form.price_period}
-                onChange={(e) => handleChange("price_period", e.target.value)}
-              >
-                <option value="total">Total</option>
-                <option value="per_year">Per Year (Rent)</option>
-              </select>
-            </div>
+          <div>
+            <label className={labelClass}>Price (NGN) *</label>
+            <input
+              className={inputClass}
+              type="number"
+              value={form.price}
+              onChange={(e) => handleChange("price", e.target.value)}
+              required
+            />
           </div>
 
           <div className="grid grid-cols-4 gap-4">
@@ -348,7 +332,7 @@ export function ListingForm({ property, images: existingImages, agents, partners
                 className={inputClass}
                 value={form.investment_note}
                 onChange={(e) => handleChange("investment_note", e.target.value)}
-                placeholder="e.g. Projected rental yield 12–15% p.a."
+                placeholder="e.g. Projected yield 12–15% p.a."
               />
             </div>
           )}

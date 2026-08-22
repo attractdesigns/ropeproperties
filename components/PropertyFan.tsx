@@ -7,9 +7,7 @@ import { formatPriceCompactWithPeriod } from "@/lib/format";
 
 const statusLabels: Record<string, string> = {
   for_sale: "For Sale",
-  for_rent: "For Rent",
   sold: "Sold",
-  let: "Let",
 };
 
 // The featured band sits between the near-black hero floor and the light body

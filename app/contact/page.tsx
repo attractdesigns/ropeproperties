@@ -99,7 +99,7 @@ function ContactForm() {
         <Section>
           <SectionTitle>Get in Touch</SectionTitle>
           <p className="mt-4 text-muted max-w-lg">
-            Whether you&apos;re buying, renting, investing, or looking to sell,
+            Whether you&apos;re buying, investing, or looking to sell,
             I&apos;m here to help. Send me a message or reach me directly.
           </p>
 

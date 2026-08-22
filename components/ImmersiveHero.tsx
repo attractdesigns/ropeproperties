@@ -18,11 +18,12 @@ const typeOptions = [
   { value: "commercial", label: "Commercial" },
 ];
 
-// Doubles as the Buy/Rent toggle in the frame's top bar.
+// Doubles as the intent toggle in the frame's top bar. Only these two filter
+// the listings search — Invest is a separate content type with its own page, so
+// it sits alongside them in the bar as a link rather than a filter.
 const intents = [
   { value: "all", label: "All" },
   { value: "for_sale", label: "Buy" },
-  { value: "for_rent", label: "Rent" },
 ];
 
 const fieldLabel = "block text-[9px] uppercase tracking-[0.24em] text-white/40";
@@ -122,7 +123,7 @@ export function ImmersiveHero({
         style={{ animationDelay: "120ms" }}
       >
         <span className="block text-white/40">Services /</span>
-        <span className="block text-white/75">Buy &middot; Rent &middot; Invest</span>
+        <span className="block text-white/75">Buy &middot; Invest &middot; Sell</span>
       </div>
       <div
         className="absolute right-5 top-24 z-10 hidden text-right text-[10px] uppercase leading-relaxed tracking-[0.22em] sm:block lg:right-8 alpine-rise"
@@ -169,7 +170,7 @@ export function ImmersiveHero({
                 }}
               />
 
-              {/* In-frame bar: doubles as the Buy / Rent intent toggle. The
+              {/* In-frame bar: doubles as the Buy / Invest intent toggle. The
                   site Header is fixed at 64px, so on phones — where this bar
                   starts at the very top of the screen — it has to clear it. */}
               <div className="relative flex items-center justify-between gap-3 border-b border-white/15 px-4 pb-3.5 pt-[76px] text-[10px] uppercase tracking-[0.18em] sm:px-5 sm:py-3.5">
@@ -200,6 +201,13 @@ export function ImmersiveHero({
                         </button>
                       </span>
                     ))}
+                    <span className="text-white/25">&middot;</span>
+                    <Link
+                      href="/invest"
+                      className="uppercase tracking-[0.18em] text-white/40 transition-colors hover:text-white/70"
+                    >
+                      Invest
+                    </Link>
                   </div>
                 </div>
 

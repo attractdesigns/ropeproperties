@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     template: "%s | Opeoluwa, RopeProperties",
   },
   description:
-    "Buy, rent, and invest in premium Nigerian property with Opeoluwa — a Lagos-based realtor offering personal, straight-talking guidance from first viewing to handover.",
+    "Buy and invest in premium Nigerian property with Opeoluwa — a Lagos-based realtor offering personal, straight-talking guidance from first viewing to handover.",
   metadataBase: new URL(SITE_URL),
   openGraph: {
     type: "website",

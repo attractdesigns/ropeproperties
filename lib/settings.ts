@@ -11,7 +11,7 @@ import type { SiteSettings } from "@/lib/types";
  */
 export const HERO_DEFAULTS = {
   heading: "Find a place you'll love to call home",
-  subheading: `Buy, rent, and invest in Nigerian property — guided personally by ${REALTOR_NAME}.`,
+  subheading: `Buy and invest in Nigerian property — guided personally by ${REALTOR_NAME}.`,
   /** Placeholder until a real property photo is uploaded. */
   imageUrl: "https://picsum.photos/seed/ropeproperties-hero/1920/1080",
 };

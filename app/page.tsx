@@ -72,8 +72,8 @@ async function getFeaturedOpportunities() {
 
 const services = [
   { title: "Buy", description: "Find your dream home", href: "/listings?status=for_sale" },
-  { title: "Rent", description: "Premium rentals", href: "/listings?status=for_rent" },
   { title: "Invest", description: "Grow your wealth", href: "/invest" },
+  { title: "Land", description: "Verified plots & titles", href: "/listings?type=land" },
   { title: "Sell / Manage", description: "List & manage property", href: "/contact" },
 ];
 
@@ -206,10 +206,10 @@ async function AboutTeaser() {
         <div>
           <SectionTitle>Hello, I&apos;m {REALTOR_NAME}</SectionTitle>
           <p className="mt-4 text-muted leading-relaxed">
-            {BUSINESS_NAME} is built on my name — R.O.P.E. comes from Opeoluwa. I
-            help clients buy, rent, and invest across Lagos and Abuja, with reach
-            extending into new markets across Nigeria, and I handle my clients
-            personally, from first viewing through to handover.
+            {BUSINESS_NAME} carries my name — R.O.P.E. comes from {REALTOR_NAME}.
+            I advise buyers and investors across Lagos and Abuja, and increasingly
+            in markets beyond them. Every client is handled by me directly, from
+            the first viewing through to handover.
           </p>
           <Link
             href="/about"

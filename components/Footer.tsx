@@ -26,7 +26,7 @@ export function Footer() {
           <div className="md:col-span-1">
             <Logo />
             <p className="mt-4 text-sm text-muted max-w-xs">
-              Buy, rent, and invest in Nigerian property — handled personally by{" "}
+              Buy and invest in Nigerian property — handled personally by{" "}
               {REALTOR_NAME}.
             </p>
           </div>

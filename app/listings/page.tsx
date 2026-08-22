@@ -34,7 +34,7 @@ async function getProperties(searchParams: SearchParams) {
 
   // Filter values come from the URL, so only accept known enum members —
   // anything else is ignored rather than sent to Postgres.
-  const statuses: PropertyStatus[] = ["for_sale", "for_rent", "sold", "let"];
+  const statuses: PropertyStatus[] = ["for_sale", "sold"];
   const types: PropertyType[] = [
     "apartment", "house", "duplex", "terrace", "bungalow", "land", "commercial",
   ];

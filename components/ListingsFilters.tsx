@@ -20,11 +20,9 @@ const propertyTypes = [
 ];
 
 const statusOptions = [
-  { value: "all", label: "Buy & Rent" },
+  { value: "all", label: "All" },
   { value: "for_sale", label: "For Sale" },
-  { value: "for_rent", label: "For Rent" },
   { value: "sold", label: "Sold" },
-  { value: "let", label: "Let" },
 ];
 
 const bedroomOptions = [
