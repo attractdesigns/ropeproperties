@@ -45,6 +45,7 @@ const realtorJsonLd = {
   areaServed: [
     { "@type": "City", name: "Lagos" },
     { "@type": "City", name: "Abuja" },
+    { "@type": "Country", name: "Nigeria" },
   ],
   address: {
     "@type": "PostalAddress",

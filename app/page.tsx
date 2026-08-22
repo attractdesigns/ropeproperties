@@ -4,10 +4,11 @@ import { ArrowRight, Phone, Quote } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Section, SectionTitle } from "@/components/Section";
-import { PropertyCard } from "@/components/PropertyCard";
 import { OpportunityCard } from "@/components/OpportunityCard";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { PartnerModal } from "@/components/PartnerModal";
+import { ImmersiveHero } from "@/components/ImmersiveHero";
+import { PropertyFan } from "@/components/PropertyFan";
 import { createClient } from "@/lib/supabase/server";
 import { getTestimonials, getPrimaryRealtor } from "@/lib/realtor";
 import { getStorageUrl } from "@/lib/storage";
@@ -44,6 +45,16 @@ async function getFeaturedProperties() {
   return (data ?? []) as unknown as PropertyWithRelations[];
 }
 
+async function getCities() {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("properties")
+    .select("city")
+    .neq("status", "draft");
+  const cities = [...new Set((data ?? []).map((p) => p.city))];
+  return cities.sort();
+}
+
 async function getFeaturedOpportunities() {
   const supabase = await createClient();
   const { data } = await supabase
@@ -71,11 +82,9 @@ export default function HomePage() {
     <>
       <Header />
       <main>
-        {/* Hero */}
+        {/* Hero + the featured band it hands off to. There is no separate
+            "Featured Listings" grid below them. */}
         <Hero />
-
-        {/* Featured Listings */}
-        <FeaturedProperties />
 
         {/* About Teaser */}
         <AboutTeaser />
@@ -143,7 +152,11 @@ export default function HomePage() {
 async function Hero() {
   // Image and copy come from Admin → Site settings; HERO_DEFAULTS keeps the
   // homepage intact if the row is empty or the migration hasn't been run.
-  const settings = await getSiteSettings();
+  const [settings, properties, cities] = await Promise.all([
+    getSiteSettings(),
+    getFeaturedProperties(),
+    getCities(),
+  ]);
 
   const imageUrl =
     getStorageUrl(settings?.hero_image_path) ?? HERO_DEFAULTS.imageUrl;
@@ -151,57 +164,17 @@ async function Hero() {
   const subheading = settings?.hero_subheading?.trim() || HERO_DEFAULTS.subheading;
 
   return (
-    <section className="relative h-screen min-h-[600px] w-full">
-      <Image
-        src={imageUrl}
-        alt={heading}
-        fill
-        priority
-        sizes="100vw"
-        className="object-cover"
+    <>
+      <ImmersiveHero
+        cities={cities}
+        heading={heading}
+        subheading={subheading}
+        imageUrl={imageUrl}
       />
-      <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/40" />
-      <div className="relative h-full flex items-center justify-center text-center px-4">
-        <div className="max-w-2xl">
-          <h1 className="font-display text-4xl md:text-6xl text-white font-medium leading-tight">
-            {heading}
-          </h1>
-          <p className="mt-6 text-white/80 text-lg max-w-md mx-auto">{subheading}</p>
-          <Link
-            href="/listings"
-            className="mt-8 inline-flex items-center gap-2 bg-white text-ink px-6 py-3 text-sm font-medium hover:bg-accent hover:text-white transition-colors"
-          >
-            Browse Listings
-            <ArrowRight size={16} />
-          </Link>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-async function FeaturedProperties() {
-  const properties = await getFeaturedProperties();
-
-  if (properties.length === 0) return null;
-
-  return (
-    <Section>
-      <div className="flex items-baseline justify-between mb-10">
-        <SectionTitle>Featured Listings</SectionTitle>
-        <Link
-          href="/listings"
-          className="text-sm font-medium text-accent hover:text-accent-deep transition-colors"
-        >
-          View all →
-        </Link>
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-10">
-        {properties.map((property) => (
-          <PropertyCard key={property.id} property={property} />
-        ))}
-      </div>
-    </Section>
+      {/* Its own dark band, a tone lighter than the hero, ramping into the
+          light body the About teaser opens on. */}
+      <PropertyFan properties={properties} />
+    </>
   );
 }
 
@@ -234,8 +207,9 @@ async function AboutTeaser() {
           <SectionTitle>Hello, I&apos;m {REALTOR_NAME}</SectionTitle>
           <p className="mt-4 text-muted leading-relaxed">
             {BUSINESS_NAME} is built on my name — R.O.P.E. comes from Opeoluwa. I
-            help clients buy, rent, and invest across Lagos and Abuja, and I handle
-            my clients personally, from first viewing through to handover.
+            help clients buy, rent, and invest across Lagos and Abuja, with reach
+            extending into new markets across Nigeria, and I handle my clients
+            personally, from first viewing through to handover.
           </p>
           <Link
             href="/about"

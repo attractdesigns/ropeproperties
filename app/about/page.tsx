@@ -27,7 +27,7 @@ async function getPartners(): Promise<PartnerCompany[]> {
 /** Shown only until the primary realtor writes her own bio in the admin. */
 const FALLBACK_STORY = [
   `${BUSINESS_NAME} is built on my name — R.O.P.E. comes from Opeoluwa. That is deliberate: when you work with me, you are not passed between departments or handed to whoever is free. You deal with me.`,
-  "I have spent my career in the Lagos property market — Lekki, Ikoyi, Victoria Island, and increasingly Abuja. I know which estates hold their value, which titles are worth the paperwork, and which deals are best walked away from.",
+  "I have spent my career in the Lagos property market — Lekki, Ikoyi, Victoria Island — and increasingly Abuja, with my reach growing into new markets across Nigeria. I know which estates hold their value, which titles are worth the paperwork, and which deals are best walked away from.",
   "Whether you are buying your first home, renting while you settle into the city, or putting money to work in an investment, my job is to give you a straight answer and see it through to handover.",
 ];
 

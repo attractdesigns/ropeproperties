@@ -11,6 +11,15 @@
   --color-accent-tint: #f5f0e6;
   --color-line: #e4e6e9;
 
+  /* Alpine palette — used only by the immersive homepage hero band. */
+  --color-alpine-void: #0a0e10;
+  --color-alpine-slate: #293a43;
+  --color-alpine-deep: #345261;
+  --color-alpine-blue: #3e6482;
+  --color-alpine-steel: #496875;
+  --color-alpine-ice: #c1cfd1;
+  --color-alpine-card: #16191b;
+
   /* Fonts */
   --font-display: "Playfair Display", serif;
   --font-sans: "Inter", sans-serif;
@@ -81,6 +90,41 @@ h1, h2, h3, h4, h5, h6 {
   .img-hover:hover img {
     transform: none;
   }
+}
+
+/* Immersive alpine hero — staged entrance. Each element sets its own
+   animation-delay inline so the frame, then the headline, then the search bar
+   settle in sequence rather than all at once. */
+@keyframes alpine-rise {
+  from {
+    opacity: 0;
+    transform: translateY(26px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.alpine-rise {
+  opacity: 0;
+  animation: alpine-rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .alpine-rise {
+    opacity: 1;
+    animation: none;
+  }
+}
+
+/* Hide the horizontal scrollbar on the mobile card fan without disabling
+   the scrolling itself. */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
 /* Embla carousel */

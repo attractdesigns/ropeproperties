@@ -13,6 +13,7 @@ type SearchParams = {
   status?: string;
   type?: string;
   bedrooms?: string;
+  bathrooms?: string;
   city?: string;
   min_price?: string;
   max_price?: string;
@@ -44,12 +45,18 @@ async function getProperties(searchParams: SearchParams) {
   if (types.includes(searchParams.type as PropertyType)) {
     query = query.eq("property_type", searchParams.type as PropertyType);
   }
+  // Both room filters are "N or more" — that is what the "3+" style labels in
+  // the filter bar and the hero's stepper promise the visitor.
   if (searchParams.bedrooms && searchParams.bedrooms !== "any") {
     const beds = parseInt(searchParams.bedrooms);
-    if (beds === 5) {
-      query = query.gte("bedrooms", 5);
-    } else {
-      query = query.eq("bedrooms", beds);
+    if (Number.isFinite(beds)) {
+      query = query.gte("bedrooms", beds);
+    }
+  }
+  if (searchParams.bathrooms && searchParams.bathrooms !== "any") {
+    const baths = parseInt(searchParams.bathrooms);
+    if (Number.isFinite(baths)) {
+      query = query.gte("bathrooms", baths);
     }
   }
   if (searchParams.city && searchParams.city !== "all") {
