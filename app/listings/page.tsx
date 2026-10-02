@@ -3,7 +3,7 @@ import { Footer } from "@/components/Footer";
 import { Section } from "@/components/Section";
 import { PropertyCard } from "@/components/PropertyCard";
 import { ListingsFilters } from "@/components/ListingsFilters";
-import { createClient } from "@/lib/supabase/server";
+import { gql } from "@/lib/nhost/gql";
 import type { PropertyWithRelations, PropertyStatus, PropertyType } from "@/lib/types";
 import Link from "next/link";
 import { SearchX } from "lucide-react";
@@ -21,83 +21,78 @@ type SearchParams = {
   sort?: string;
 };
 
-async function getProperties(searchParams: SearchParams) {
-  const supabase = await createClient();
-  let query = supabase
-    .from("properties")
-    .select(`
-      *,
-      property_images (*),
-      agents (*),
-      partner_companies (*)
-    `)
-    .neq("status", "draft");
+const PROPERTY_FIELDS = /* GraphQL */ `
+  id slug title description status property_type price price_period
+  bedrooms bathrooms toilets parking size_sqm city neighbourhood
+  features map_embed_url is_featured is_investment investment_note
+  partner_id agent_id created_at updated_at
+  property_images(order_by: { sort_order: asc }) {
+    id property_id storage_path alt sort_order
+  }
+  agents: agent { id name role phone whatsapp email photo_path bio is_primary is_active sort_order }
+  partner_companies: partner_company { id name description logo_path website_url is_active sort_order }
+`;
 
-  // Filter values come from the URL, so only accept known enum members —
-  // anything else is ignored rather than sent to Postgres.
-  const statuses: PropertyStatus[] = ["for_sale", "sold"];
-  const types: PropertyType[] = [
-    "apartment", "house", "duplex", "terrace", "bungalow", "land", "commercial",
-  ];
+const statuses: PropertyStatus[] = ["for_sale", "sold"];
+const types: PropertyType[] = [
+  "apartment", "house", "duplex", "terrace", "bungalow", "land", "commercial",
+];
+
+async function getProperties(searchParams: SearchParams): Promise<PropertyWithRelations[]> {
+  const where: Record<string, unknown> = { status: { _neq: "draft" } };
 
   if (statuses.includes(searchParams.status as PropertyStatus)) {
-    query = query.eq("status", searchParams.status as PropertyStatus);
+    where.status = { _eq: searchParams.status };
   }
   if (types.includes(searchParams.type as PropertyType)) {
-    query = query.eq("property_type", searchParams.type as PropertyType);
+    where.property_type = { _eq: searchParams.type };
   }
-  // Both room filters are "N or more" — that is what the "3+" style labels in
-  // the filter bar and the hero's stepper promise the visitor.
   if (searchParams.bedrooms && searchParams.bedrooms !== "any") {
     const beds = parseInt(searchParams.bedrooms);
-    if (Number.isFinite(beds)) {
-      query = query.gte("bedrooms", beds);
-    }
+    if (Number.isFinite(beds)) where.bedrooms = { _gte: beds };
   }
   if (searchParams.bathrooms && searchParams.bathrooms !== "any") {
     const baths = parseInt(searchParams.bathrooms);
-    if (Number.isFinite(baths)) {
-      query = query.gte("bathrooms", baths);
-    }
+    if (Number.isFinite(baths)) where.bathrooms = { _gte: baths };
   }
   if (searchParams.city && searchParams.city !== "all") {
-    query = query.eq("city", searchParams.city);
+    where.city = { _eq: searchParams.city };
   }
   if (searchParams.min_price) {
-    query = query.gte("price", parseInt(searchParams.min_price));
+    where.price = { ...((where.price as object) ?? {}), _gte: parseInt(searchParams.min_price) };
   }
   if (searchParams.max_price) {
-    query = query.lte("price", parseInt(searchParams.max_price));
+    where.price = { ...((where.price as object) ?? {}), _lte: parseInt(searchParams.max_price) };
   }
 
-  // Sort — guarded against unexpected input.
+  let orderBy: Record<string, string>;
   switch (searchParams.sort) {
-    case "price_asc":
-      query = query.order("price", { ascending: true });
-      break;
-    case "price_desc":
-      query = query.order("price", { ascending: false });
-      break;
-    case "beds_desc":
-      query = query.order("bedrooms", { ascending: false, nullsFirst: false });
-      break;
-    default:
-      query = query.order("created_at", { ascending: false });
+    case "price_asc":  orderBy = { price: "asc" }; break;
+    case "price_desc": orderBy = { price: "desc" }; break;
+    case "beds_desc":  orderBy = { bedrooms: "desc_nulls_last" }; break;
+    default:           orderBy = { created_at: "desc" };
   }
 
-  const { data } = await query;
-  return (data ?? []) as unknown as PropertyWithRelations[];
+  const data = await gql<{ properties: PropertyWithRelations[] }>(`
+    query Listings($where: properties_bool_exp, $order_by: [properties_order_by!]) {
+      properties(where: $where, order_by: [$order_by]) { ${PROPERTY_FIELDS} }
+    }
+  `, { where, order_by: orderBy });
+
+  return data.properties;
 }
 
-async function getCities() {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("properties")
-    .select("city")
-    .neq("status", "draft");
-  // Deduplicate
-  const cities = [...new Set((data ?? []).map((p) => p.city))];
-  return cities.sort();
+async function getCities(): Promise<string[]> {
+  const data = await gql<{ properties: { city: string }[] }>(`
+    query ListingCities {
+      properties(
+        where: { status: { _neq: "draft" } }
+        distinct_on: city
+        order_by: { city: asc }
+      ) { city }
+    }
+  `);
+  return data.properties.map((p) => p.city);
 }
 
 export default async function ListingsPage({

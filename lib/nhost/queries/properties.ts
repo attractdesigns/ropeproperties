@@ -48,7 +48,7 @@ const FEATURED_PROPERTIES = /* GraphQL */ `
         alt
         sort_order
       }
-      agents {
+      agents: agent {
         id
         name
         role
@@ -58,13 +58,17 @@ const FEATURED_PROPERTIES = /* GraphQL */ `
         bio
         photo_path
         is_primary
+        is_active
+        sort_order
       }
-      partner_companies {
+      partner_companies: partner_company {
         id
         name
         description
         website_url
         logo_path
+        is_active
+        sort_order
       }
     }
   }

@@ -5,7 +5,7 @@ import { Footer } from "@/components/Footer";
 import { Section, SectionTitle } from "@/components/Section";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { PartnerModal } from "@/components/PartnerModal";
-import { createClient } from "@/lib/supabase/server";
+import { gql } from "@/lib/nhost/gql";
 import { getStorageUrl } from "@/lib/storage";
 import { getPrimaryRealtor, getSupportStaff, getTestimonials } from "@/lib/realtor";
 import { formatPhoneDisplay } from "@/lib/format";
@@ -15,13 +15,15 @@ import type { PartnerCompany } from "@/lib/types";
 export const revalidate = 60;
 
 async function getPartners(): Promise<PartnerCompany[]> {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("partner_companies")
-    .select("*")
-    .eq("is_active", true)
-    .order("sort_order", { ascending: true });
-  return data ?? [];
+  const data = await gql<{ partner_companies: PartnerCompany[] }>(`
+    query AboutPartners {
+      partner_companies(
+        where: { is_active: { _eq: true } }
+        order_by: { sort_order: asc }
+      ) { id name logo_path website_url description sort_order is_active }
+    }
+  `);
+  return data.partner_companies;
 }
 
 /** Shown only until the primary realtor writes her own bio in the admin. */
