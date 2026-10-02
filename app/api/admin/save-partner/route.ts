@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { requireAdminUser } from "@/lib/nhost/auth-server";
+import { gql } from "@/lib/nhost/gql";
 import { revalidatePath } from "next/cache";
 
 export async function POST(request: NextRequest) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
+  try {
+    await requireAdminUser();
+  } catch {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -26,12 +26,18 @@ export async function POST(request: NextRequest) {
     is_active: body.is_active ?? true,
   };
 
-  const { error } = id
-    ? await supabase.from("partner_companies").update(record).eq("id", id)
-    : await supabase.from("partner_companies").insert(record);
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  if (id) {
+    await gql(`
+      mutation UpdatePartner($id: uuid!, $set: partner_companies_set_input!) {
+        update_partner_companies_by_pk(pk_columns: { id: $id }, _set: $set) { id }
+      }
+    `, { id, set: record });
+  } else {
+    await gql(`
+      mutation InsertPartner($object: partner_companies_insert_input!) {
+        insert_partner_companies_one(object: $object) { id }
+      }
+    `, { object: record });
   }
 
   revalidatePath("/about", "page");

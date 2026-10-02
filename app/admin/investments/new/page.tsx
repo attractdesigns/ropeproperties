@@ -1,12 +1,18 @@
 import { OpportunityForm } from "@/components/admin/OpportunityForm";
-import { createClient } from "@/lib/supabase/server";
+import { gql } from "@/lib/nhost/gql";
+import type { Agent } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-async function getAgents() {
-  const supabase = await createClient();
-  const { data } = await supabase.from("agents").select("*").order("sort_order");
-  return data ?? [];
+async function getAgents(): Promise<Agent[]> {
+  const data = await gql<{ agents: Agent[] }>(`
+    query AgentsForForm {
+      agents(order_by: { sort_order: asc }) {
+        id name role phone whatsapp email photo_path bio sort_order is_active is_primary
+      }
+    }
+  `);
+  return data.agents;
 }
 
 export default async function NewOpportunityPage() {

@@ -1,23 +1,35 @@
 import { OpportunityForm } from "@/components/admin/OpportunityForm";
-import { createClient } from "@/lib/supabase/server";
+import { gql } from "@/lib/nhost/gql";
 import type { InvestmentOpportunity, InvestmentImage, Agent } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 async function getOpportunity(id: string) {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("investment_opportunities")
-    .select(`*, investment_images (*)`)
-    .eq("id", id)
-    .single();
-  return data as unknown as (InvestmentOpportunity & { investment_images: InvestmentImage[] }) | null;
+  const data = await gql<{
+    investment_opportunities: (InvestmentOpportunity & { investment_images: InvestmentImage[] })[];
+  }>(`
+    query EditOpportunity($id: uuid!) {
+      investment_opportunities(where: { id: { _eq: $id } }, limit: 1) {
+        id title slug description status investment_type city neighbourhood
+        roi_range min_entry duration map_embed_url is_featured agent_id created_at updated_at
+        investment_images(order_by: { sort_order: asc }) {
+          id opportunity_id storage_path alt sort_order
+        }
+      }
+    }
+  `, { id });
+  return data.investment_opportunities[0] ?? null;
 }
 
-async function getAgents() {
-  const supabase = await createClient();
-  const { data } = await supabase.from("agents").select("*").order("sort_order");
-  return (data ?? []) as Agent[];
+async function getAgents(): Promise<Agent[]> {
+  const data = await gql<{ agents: Agent[] }>(`
+    query AgentsForForm {
+      agents(order_by: { sort_order: asc }) {
+        id name role phone whatsapp email photo_path bio sort_order is_active is_primary
+      }
+    }
+  `);
+  return data.agents;
 }
 
 export default async function EditOpportunityPage({

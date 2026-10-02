@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
 import { Logo } from "@/components/Logo";
 
 export default function AdminLoginPage() {
@@ -21,14 +20,16 @@ export default function AdminLoginPage() {
     setLoading(true);
 
     try {
-      const supabase = createClient();
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      const res = await fetch("/api/admin/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
       });
 
-      if (error) {
-        setError(error.message);
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error ?? "Sign in failed. Please try again.");
         return;
       }
 

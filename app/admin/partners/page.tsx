@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { gql } from "@/lib/nhost/gql";
 import { getStorageUrl } from "@/lib/storage";
 import { PartnerForm } from "@/components/admin/PartnerForm";
 import { DeleteButton } from "@/components/admin/DeleteButton";
@@ -9,12 +9,14 @@ import type { PartnerCompany } from "@/lib/types";
 export const dynamic = "force-dynamic";
 
 async function getPartners(): Promise<PartnerCompany[]> {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("partner_companies")
-    .select("*")
-    .order("sort_order", { ascending: true });
-  return data ?? [];
+  const data = await gql<{ partner_companies: PartnerCompany[] }>(`
+    query AdminPartners {
+      partner_companies(order_by: { sort_order: asc }) {
+        id name logo_path website_url description sort_order is_active
+      }
+    }
+  `);
+  return data.partner_companies;
 }
 
 export default async function AdminPartnersPage() {
@@ -70,12 +72,7 @@ export default async function AdminPartnersPage() {
                     <td className="p-3 text-sm">{partner.is_active ? "✓" : "—"}</td>
                     <td className="p-3">
                       <div className="flex items-center gap-3">
-                        <Link
-                          href={`/admin/partners/${partner.id}/edit`}
-                          className="text-sm text-accent hover:text-accent-deep"
-                        >
-                          Edit
-                        </Link>
+                        <Link href={`/admin/partners/${partner.id}/edit`} className="text-sm text-accent hover:text-accent-deep">Edit</Link>
                         <DeleteButton id={partner.id} type="partner" title={partner.name} />
                       </div>
                     </td>

@@ -1,19 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { requireAdminUser } from "@/lib/nhost/auth-server";
+import { gql } from "@/lib/nhost/gql";
 import { revalidatePath } from "next/cache";
 
 export async function POST(request: NextRequest) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
+  try {
+    await requireAdminUser();
+  } catch {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const body = await request.json();
   const { images, id, ...propertyData } = body;
 
-  // Prepare property record
   const record = {
     title: propertyData.title,
     slug: propertyData.slug,
@@ -42,47 +41,43 @@ export async function POST(request: NextRequest) {
   let propertyId: string;
 
   if (id) {
-    // Update
-    const { data, error } = await supabase
-      .from("properties")
-      .update(record)
-      .eq("id", id)
-      .select("id")
-      .single();
+    const data = await gql<{ update_properties_by_pk: { id: string } | null }>(`
+      mutation UpdateProperty($id: uuid!, $set: properties_set_input!) {
+        update_properties_by_pk(pk_columns: { id: $id }, _set: $set) { id }
+      }
+    `, { id, set: record });
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    if (!data.update_properties_by_pk) {
+      return NextResponse.json({ error: "Property not found" }, { status: 404 });
     }
-    propertyId = data.id;
+    propertyId = data.update_properties_by_pk.id;
 
-    // Delete existing images and re-insert
-    await supabase.from("property_images").delete().eq("property_id", propertyId);
+    await gql(`
+      mutation DeletePropertyImages($property_id: uuid!) {
+        delete_property_images(where: { property_id: { _eq: $property_id } }) { affected_rows }
+      }
+    `, { property_id: propertyId });
   } else {
-    // Insert
-    const { data, error } = await supabase
-      .from("properties")
-      .insert(record)
-      .select("id")
-      .single();
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-    propertyId = data.id;
+    const data = await gql<{ insert_properties_one: { id: string } }>(`
+      mutation InsertProperty($object: properties_insert_input!) {
+        insert_properties_one(object: $object) { id }
+      }
+    `, { object: record });
+    propertyId = data.insert_properties_one.id;
   }
 
-  // Insert images
   if (images && images.length > 0) {
-    const imageRecords = images.map((img: { storage_path: string; sort_order: number; alt: string | null }, index: number) => ({
+    const objects = images.map((img: { storage_path: string; alt: string | null }, i: number) => ({
       property_id: propertyId,
       storage_path: img.storage_path,
-      sort_order: index,
-      alt: img.alt,
+      sort_order: i,
+      alt: img.alt ?? null,
     }));
-    const { error: imgError } = await supabase.from("property_images").insert(imageRecords);
-    if (imgError) {
-      console.error("Image insert error:", imgError);
-    }
+    await gql(`
+      mutation InsertPropertyImages($objects: [property_images_insert_input!]!) {
+        insert_property_images(objects: $objects) { affected_rows }
+      }
+    `, { objects });
   }
 
   revalidatePath("/listings", "page");
