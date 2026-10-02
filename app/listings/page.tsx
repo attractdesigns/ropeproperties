@@ -6,6 +6,7 @@ import { ListingsFilters } from "@/components/ListingsFilters";
 import { createClient } from "@/lib/supabase/server";
 import type { PropertyWithRelations, PropertyStatus, PropertyType } from "@/lib/types";
 import Link from "next/link";
+import { SearchX } from "lucide-react";
 
 export const revalidate = 60;
 
@@ -17,6 +18,7 @@ type SearchParams = {
   city?: string;
   min_price?: string;
   max_price?: string;
+  sort?: string;
 };
 
 async function getProperties(searchParams: SearchParams) {
@@ -29,8 +31,7 @@ async function getProperties(searchParams: SearchParams) {
       agents (*),
       partner_companies (*)
     `)
-    .neq("status", "draft")
-    .order("created_at", { ascending: false });
+    .neq("status", "draft");
 
   // Filter values come from the URL, so only accept known enum members —
   // anything else is ignored rather than sent to Postgres.
@@ -69,6 +70,21 @@ async function getProperties(searchParams: SearchParams) {
     query = query.lte("price", parseInt(searchParams.max_price));
   }
 
+  // Sort — guarded against unexpected input.
+  switch (searchParams.sort) {
+    case "price_asc":
+      query = query.order("price", { ascending: true });
+      break;
+    case "price_desc":
+      query = query.order("price", { ascending: false });
+      break;
+    case "beds_desc":
+      query = query.order("bedrooms", { ascending: false, nullsFirst: false });
+      break;
+    default:
+      query = query.order("created_at", { ascending: false });
+  }
+
   const { data } = await query;
   return (data ?? []) as unknown as PropertyWithRelations[];
 }
@@ -100,34 +116,48 @@ export default async function ListingsPage({
       <Header />
       <main className="pt-16">
         <Section>
-          <h1 className="font-display text-3xl md:text-4xl font-medium text-ink mb-8">
-            All Listings
-          </h1>
+          <div className="mb-6">
+            <p className="text-xs uppercase tracking-[0.2em] text-accent mb-2">
+              Portfolio
+            </p>
+            <h1 className="font-display text-3xl md:text-5xl font-medium text-ink tracking-tight">
+              All Listings
+            </h1>
+          </div>
 
-          <ListingsFilters cities={cities} currentParams={params} />
+          <ListingsFilters cities={cities} currentParams={params} totalCount={properties.length} />
 
           {properties.length === 0 ? (
-            <div className="text-center py-20">
-              <p className="text-muted text-lg">No properties match your filters.</p>
-              <p className="text-muted text-sm mt-2">
-                Try adjusting your search or{" "}
-                <Link href="/contact" className="text-accent hover:text-accent-deep">
-                  contact us
-                </Link>{" "}
-                with your requirements.
+            <div className="mx-auto max-w-md rounded-2xl border border-line bg-surface px-6 py-16 text-center">
+              <div className="mx-auto mb-5 inline-flex h-14 w-14 items-center justify-center rounded-full bg-bg">
+                <SearchX size={22} className="text-muted" />
+              </div>
+              <h2 className="font-display text-2xl text-ink">No matches</h2>
+              <p className="mt-2 text-sm text-muted">
+                Nothing lines up with those filters. Try widening the budget or
+                removing a constraint.
               </p>
+              <div className="mt-6 flex flex-wrap justify-center gap-3">
+                <Link
+                  href="/listings"
+                  className="rounded-full border border-line bg-bg px-5 py-2.5 text-sm font-medium text-ink hover:border-accent hover:text-accent transition-colors"
+                >
+                  Clear filters
+                </Link>
+                <Link
+                  href="/contact"
+                  className="rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-bg hover:bg-accent transition-colors"
+                >
+                  Tell me what you need
+                </Link>
+              </div>
             </div>
           ) : (
-            <>
-              <p className="text-sm text-muted mb-6">
-                {properties.length} {properties.length === 1 ? "property" : "properties"} found
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-10">
-                {properties.map((property) => (
-                  <PropertyCard key={property.id} property={property} />
-                ))}
-              </div>
-            </>
+            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-10">
+              {properties.map((property) => (
+                <PropertyCard key={property.id} property={property} />
+              ))}
+            </div>
           )}
         </Section>
       </main>

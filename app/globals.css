@@ -34,6 +34,36 @@
   --accent-deep: #84683a;
   --accent-tint: #f5f0e6;
   --line: #e4e6e9;
+
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --bg: #0e1013;
+  --surface: #16191d;
+  --ink: #f1f2f4;
+  --muted: #9aa0a8;
+  --accent: #c9a76a;
+  --accent-deep: #a1804a;
+  --accent-tint: #2a2318;
+  --line: #262a2f;
+
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1013;
+    --surface: #16191d;
+    --ink: #f1f2f4;
+    --muted: #9aa0a8;
+    --accent: #c9a76a;
+    --accent-deep: #a1804a;
+    --accent-tint: #2a2318;
+    --line: #262a2f;
+
+    color-scheme: dark;
+  }
 }
 
 * {
@@ -46,11 +76,26 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+@media (min-width: 768px) {
+  body {
+    font-size: 17px;
+  }
 }
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-display);
   font-weight: 500;
+  letter-spacing: -0.015em;
+  line-height: 1.1;
+}
+
+h1 {
+  letter-spacing: -0.02em;
+  line-height: 1.05;
 }
 
 /* Subtle scroll-into-view animation */
@@ -69,25 +114,64 @@ h1, h2, h3, h4, h5, h6 {
   animation: fade-up 0.6s ease-out forwards;
 }
 
+/* Reveal-on-scroll: elements fade in as they enter the viewport.
+   Managed by the Reveal component via IntersectionObserver. */
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .animate-fade-up {
+  .animate-fade-up,
+  .reveal {
+    opacity: 1;
+    transform: none;
     animation: none;
+    transition: none;
   }
 }
 
-/* Image hover scale */
+/* Image hover scale + card hover lift */
 .img-hover {
   overflow: hidden;
 }
 .img-hover img {
-  transition: transform 0.6s ease;
+  transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
 }
-.img-hover:hover img {
-  transform: scale(1.03);
+.img-hover:hover img,
+.group:hover .img-hover img {
+  transform: scale(1.05);
+}
+
+.card-lift {
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+              border-color 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.card-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px -12px rgba(23, 25, 28, 0.18);
+}
+
+:root[data-theme="dark"] .card-lift:hover,
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .card-lift:hover {
+    box-shadow: 0 10px 30px -8px rgba(0, 0, 0, 0.6);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .img-hover:hover img {
+  .img-hover:hover img,
+  .group:hover .img-hover img,
+  .card-lift:hover {
     transform: none;
   }
 }
@@ -137,4 +221,27 @@ h1, h2, h3, h4, h5, h6 {
 .embla__slide {
   flex: 0 0 100%;
   min-width: 0;
+}
+
+/* Skeleton loaders */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--surface) 0%,
+    var(--line) 50%,
+    var(--surface) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
 }

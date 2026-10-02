@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Logo } from "./Logo";
+import { ThemeToggle } from "./ThemeToggle";
 import { cn } from "@/lib/utils";
 import { REALTOR_NAME } from "@/lib/site";
 
@@ -39,7 +40,7 @@ export function Header() {
         "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
         transparent
           ? "bg-transparent"
-          : "bg-white border-b border-line"
+          : "bg-bg/90 border-b border-line backdrop-blur-md"
       )}
     >
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
@@ -65,6 +66,7 @@ export function Header() {
                 {item.label}
               </Link>
             ))}
+            <ThemeToggle />
           </nav>
 
           {/* Mobile toggle */}
@@ -87,7 +89,7 @@ export function Header() {
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div id="mobile-navigation" className="md:hidden bg-white border-b border-line shadow-lg">
+        <div id="mobile-navigation" className="md:hidden bg-bg border-b border-line shadow-lg">
           <nav aria-label="Mobile navigation" className="flex flex-col px-4 py-3">
             {navItems.map((item) => (
               <Link
@@ -102,9 +104,13 @@ export function Header() {
                 {item.label}
               </Link>
             ))}
-            <Link href="/contact" onClick={() => setMobileOpen(false)} className="mt-3 flex min-h-12 items-center justify-center rounded-lg bg-ink px-4 text-sm font-semibold text-white">
+            <Link href="/contact" onClick={() => setMobileOpen(false)} className="mt-3 flex min-h-12 items-center justify-center rounded-lg bg-ink px-4 text-sm font-semibold text-bg">
               Speak with {REALTOR_NAME}
             </Link>
+            <div className="mt-3 flex items-center justify-between rounded-lg border border-line px-3 py-2">
+              <span className="text-sm text-muted">Appearance</span>
+              <ThemeToggle />
+            </div>
           </nav>
         </div>
       )}

@@ -126,7 +126,7 @@ export default async function AboutPage() {
             <SectionTitle className="mb-10">What my clients say</SectionTitle>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {testimonials.map((t) => (
-                <figure key={t.id} className="border border-line bg-white p-6 flex flex-col">
+                <figure key={t.id} className="rounded-xl border border-line bg-bg p-6 flex flex-col">
                   <Quote size={20} className="text-accent shrink-0" aria-hidden />
                   <blockquote className="mt-4 text-muted leading-relaxed flex-1">
                     {t.quote}
@@ -218,7 +218,7 @@ export default async function AboutPage() {
               {partners.map((partner) => {
                 const logoUrl = getStorageUrl(partner.logo_path);
                 return (
-                  <div key={partner.id} className="border border-line p-6 bg-white">
+                  <div key={partner.id} className="rounded-xl border border-line p-6 bg-bg">
                     {logoUrl ? (
                       <div className="relative h-12 mb-4">
                         <Image

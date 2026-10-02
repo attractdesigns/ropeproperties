@@ -7,6 +7,7 @@ import { Section } from "@/components/Section";
 import { GalleryCarousel } from "@/components/GalleryCarousel";
 import { StatusBadge, InvestmentBadge } from "@/components/StatusBadge";
 import { AgentCard } from "@/components/AgentCard";
+import { MobileContactBar } from "@/components/MobileContactBar";
 import { ViewingForm } from "@/components/forms/ViewingForm";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { createClient } from "@/lib/supabase/server";
@@ -196,8 +197,9 @@ export default async function PropertyDetailPage({
               )}
             </div>
 
-            {/* Sidebar: Agent + Form */}
-            <div className="space-y-6">
+            {/* Sidebar: Agent + Form — sticky on desktop so the contact rail
+                stays beside the description as the visitor scrolls. */}
+            <div className="space-y-6 md:sticky md:top-24 md:self-start">
               <AgentCard
                 agent={property.agents ?? primaryRealtor}
                 context={property.title}
@@ -237,6 +239,13 @@ export default async function PropertyDetailPage({
           </div>
         </Section>
       </main>
+      {!isSold && (
+        <MobileContactBar
+          phone={(property.agents ?? primaryRealtor)?.phone ?? null}
+          whatsapp={(property.agents ?? primaryRealtor)?.whatsapp ?? null}
+          context={property.title}
+        />
+      )}
       <Footer />
     </>
   );

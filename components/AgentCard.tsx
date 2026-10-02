@@ -19,7 +19,7 @@ export function AgentCard({ agent, context }: AgentCardProps) {
     : "Hello, I'd like to enquire about your services.";
 
   return (
-    <div className="border border-line p-6">
+    <div className="rounded-xl border border-line bg-bg p-6 shadow-sm">
       <h3 className="font-display text-lg text-ink mb-4">
         {agent.is_primary
           ? "Your Realtor"
@@ -28,7 +28,7 @@ export function AgentCard({ agent, context }: AgentCardProps) {
             : "Your Contact"}
       </h3>
       <div className="flex items-center gap-4">
-        <div className="relative w-16 h-16 shrink-0 bg-surface border border-line overflow-hidden">
+        <div className="relative w-16 h-16 shrink-0 bg-surface rounded-full border border-line overflow-hidden">
           {photoUrl ? (
             <Image
               src={photoUrl}

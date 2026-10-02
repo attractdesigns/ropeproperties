@@ -99,7 +99,7 @@ export default function HomePage() {
               <Link
                 key={service.title}
                 href={service.href}
-                className="group flex min-h-28 flex-col justify-center rounded-xl border border-line bg-white p-5 transition-all hover:border-accent hover:shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:p-6"
+                className="group card-lift flex min-h-28 flex-col justify-center rounded-xl border border-line bg-bg p-5 hover:border-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:p-6"
               >
                 <h3 className="font-display text-xl text-ink group-hover:text-accent transition-colors">
                   {service.title}
@@ -130,7 +130,7 @@ export default function HomePage() {
             <div className="mt-8 flex flex-wrap justify-center gap-4">
               <Link
                 href="/contact"
-                className="inline-flex items-center gap-2 bg-ink text-white px-6 py-3 text-sm font-medium hover:bg-accent transition-colors"
+                className="inline-flex items-center gap-2 rounded-full bg-ink text-bg px-6 py-3 text-sm font-medium hover:bg-accent transition-colors"
               >
                 <Phone size={16} />
                 Get in touch
@@ -236,7 +236,7 @@ async function Testimonials() {
       </SectionTitle>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {testimonials.map((t) => (
-          <figure key={t.id} className="border border-line p-6 flex flex-col">
+          <figure key={t.id} className="rounded-xl border border-line bg-bg p-6 flex flex-col">
             <Quote size={20} className="text-accent shrink-0" aria-hidden />
             <blockquote className="mt-4 text-muted leading-relaxed flex-1">
               {t.quote}
@@ -300,7 +300,7 @@ async function Partners() {
           return (
             <div
               key={partner.id}
-              className="group border border-line bg-white p-6 flex flex-col"
+              className="group card-lift rounded-xl border border-line bg-bg p-6 flex flex-col"
             >
               <div className="relative h-12 mb-4">
                 {logoUrl ? (
