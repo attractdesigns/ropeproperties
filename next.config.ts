@@ -15,6 +15,11 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "*.supabase.co",
       },
+      // Nhost storage — pattern: <subdomain>.storage.<region>.nhost.run
+      {
+        protocol: "https",
+        hostname: "*.storage.*.nhost.run",
+      },
     ],
   },
 };
