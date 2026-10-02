@@ -52,10 +52,11 @@ export function ListingsFilters({ cities, currentParams }: ListingsFiltersProps)
   );
 
   const selectClass =
-    "border border-line bg-white px-3 py-2 text-sm text-ink focus:border-accent focus:outline-none cursor-pointer";
+    "mt-2 h-12 w-full rounded-lg border border-line bg-white px-3 text-sm text-ink focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20 cursor-pointer";
 
   return (
-    <div className="border border-line bg-white p-4 mb-8 flex flex-wrap items-center gap-3">
+    <div className="mb-8 grid grid-cols-1 gap-3 rounded-xl border border-line bg-surface p-4 sm:grid-cols-2 lg:grid-cols-4">
+      <label className="text-xs font-medium text-muted">Availability
       <select
         className={selectClass}
         value={currentParams.status ?? "all"}
@@ -67,7 +68,9 @@ export function ListingsFilters({ cities, currentParams }: ListingsFiltersProps)
           </option>
         ))}
       </select>
+      </label>
 
+      <label className="text-xs font-medium text-muted">Property type
       <select
         className={selectClass}
         value={currentParams.type ?? "all"}
@@ -79,7 +82,9 @@ export function ListingsFilters({ cities, currentParams }: ListingsFiltersProps)
           </option>
         ))}
       </select>
+      </label>
 
+      <label className="text-xs font-medium text-muted">Bedrooms
       <select
         className={selectClass}
         value={currentParams.bedrooms ?? "any"}
@@ -91,7 +96,9 @@ export function ListingsFilters({ cities, currentParams }: ListingsFiltersProps)
           </option>
         ))}
       </select>
+      </label>
 
+      <label className="text-xs font-medium text-muted">Location
       <select
         className={selectClass}
         value={currentParams.city ?? "all"}
@@ -104,6 +111,7 @@ export function ListingsFilters({ cities, currentParams }: ListingsFiltersProps)
           </option>
         ))}
       </select>
+      </label>
     </div>
   );
 }

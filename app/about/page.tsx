@@ -66,7 +66,7 @@ export default async function AboutPage() {
         {/* Personal story */}
         <Section>
           <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div className="aspect-[4/5] relative bg-surface border border-line">
+            <div className="relative mx-auto aspect-[4/4] w-full max-w-md overflow-hidden rounded-2xl border border-line bg-surface sm:aspect-[4/5] md:max-w-none">
               {portraitUrl ? (
                 <Image
                   src={portraitUrl}

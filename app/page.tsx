@@ -91,15 +91,15 @@ export default function HomePage() {
 
         {/* Services Strip */}
         <Section>
-          <SectionTitle align="center" className="mb-12">
+          <SectionTitle align="center" className="mb-8 sm:mb-12">
             How I can help
           </SectionTitle>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4 md:gap-6">
             {services.map((service) => (
               <Link
                 key={service.title}
                 href={service.href}
-                className="group border border-line p-6 hover:border-accent transition-colors text-center"
+                className="group flex min-h-28 flex-col justify-center rounded-xl border border-line bg-white p-5 transition-all hover:border-accent hover:shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:p-6"
               >
                 <h3 className="font-display text-xl text-ink group-hover:text-accent transition-colors">
                   {service.title}
@@ -187,7 +187,7 @@ async function AboutTeaser() {
   return (
     <Section background="surface">
       <div className="grid md:grid-cols-2 gap-12 items-center">
-        <div className="aspect-[4/5] relative bg-surface border border-line">
+        <div className="relative mx-auto aspect-[4/4] w-full max-w-md overflow-hidden rounded-2xl border border-line bg-surface sm:aspect-[4/5] md:max-w-none">
           {portraitUrl ? (
             <Image
               src={portraitUrl}
@@ -259,7 +259,7 @@ async function InvestmentTeaser() {
 
   return (
     <Section background="surface">
-      <div className="flex items-baseline justify-between mb-10">
+      <div className="mb-8 flex flex-col gap-3 sm:mb-10 sm:flex-row sm:items-end sm:justify-between">
         <SectionTitle>Investment Opportunities</SectionTitle>
         <Link
           href="/invest"

@@ -149,7 +149,7 @@ export default async function PropertyDetailPage({
           )}
 
           {/* Spec grid */}
-          <div className="mt-8 grid grid-cols-3 md:grid-cols-6 gap-4 border-y border-line py-6">
+          <div className="mt-8 grid grid-cols-2 gap-4 border-y border-line py-6 sm:grid-cols-3 md:grid-cols-6">
             <SpecItem label="Beds" value={property.bedrooms} />
             <SpecItem label="Baths" value={property.bathrooms} />
             <SpecItem label="Toilets" value={property.toilets} />

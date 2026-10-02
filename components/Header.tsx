@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Logo } from "./Logo";
 import { cn } from "@/lib/utils";
+import { REALTOR_NAME } from "@/lib/site";
 
 const navItems = [
   { label: "Listings", href: "/listings" },
@@ -43,7 +44,7 @@ export function Header() {
     >
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
-          <Link href="/" className="flex items-center">
+          <Link href="/" className="flex items-center" aria-label="RopeProperties home">
             <Logo variant={transparent ? "light" : "dark"} />
           </Link>
 
@@ -68,9 +69,12 @@ export function Header() {
 
           {/* Mobile toggle */}
           <button
-            className="md:hidden"
+            type="button"
+            className="flex h-11 w-11 items-center justify-center rounded-full md:hidden"
             onClick={() => setMobileOpen(!mobileOpen)}
-            aria-label="Toggle menu"
+            aria-label={mobileOpen ? "Close menu" : "Open menu"}
+            aria-expanded={mobileOpen}
+            aria-controls="mobile-navigation"
           >
             {mobileOpen ? (
               <X className={transparent ? "text-white" : "text-ink"} size={24} />
@@ -83,21 +87,24 @@ export function Header() {
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="md:hidden bg-white border-b border-line">
-          <nav className="flex flex-col px-4 py-4 gap-4">
+        <div id="mobile-navigation" className="md:hidden bg-white border-b border-line shadow-lg">
+          <nav aria-label="Mobile navigation" className="flex flex-col px-4 py-3">
             {navItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
                 className={cn(
-                  "text-sm font-medium py-2",
+                  "flex min-h-12 items-center rounded-lg px-3 text-base font-medium",
                   pathname === item.href ? "text-accent" : "text-ink"
                 )}
               >
                 {item.label}
               </Link>
             ))}
+            <Link href="/contact" onClick={() => setMobileOpen(false)} className="mt-3 flex min-h-12 items-center justify-center rounded-lg bg-ink px-4 text-sm font-semibold text-white">
+              Speak with {REALTOR_NAME}
+            </Link>
           </nav>
         </div>
       )}

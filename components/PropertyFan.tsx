@@ -15,7 +15,6 @@ const statusLabels: Record<string, string> = {
 // a scrim at the top blends out of the hero, and a full-height ramp at the
 // bottom fades into the light `surface` the About section opens on.
 const BAND = "#293a43";
-const LIGHT_BODY = "#f6f7f8";
 
 export function PropertyFan({ properties }: { properties: PropertyWithRelations[] }) {
   if (properties.length === 0) return null;
@@ -24,16 +23,6 @@ export function PropertyFan({ properties }: { properties: PropertyWithRelations[
 
   return (
     <section className="relative isolate" style={{ backgroundColor: BAND }}>
-      {/* Seam out of the hero. Sits above the content but is transparent by the
-          time it reaches the heading, so the white type stays readable. */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-24"
-        style={{
-          background: "linear-gradient(180deg, rgba(10,14,16,0.92) 0%, rgba(41,58,67,0) 100%)",
-        }}
-      />
-
       <div className="relative mx-auto max-w-[1200px] px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
         <div className="text-center">
           <p className="text-[10px] uppercase tracking-[0.3em] text-white/45">Featured</p>
@@ -44,7 +33,7 @@ export function PropertyFan({ properties }: { properties: PropertyWithRelations[
 
         {/* Flat aligned row — every card shares a baseline, so the band needs no
             reserved space underneath for staggered offsets. */}
-        <div className="mt-10 flex snap-x snap-mandatory gap-4 overflow-x-auto px-1 pb-2 no-scrollbar sm:gap-5 sm:justify-center lg:mt-12 lg:grid lg:grid-cols-4 lg:items-stretch lg:overflow-visible lg:px-0">
+        <div className="mt-10 flex snap-x snap-mandatory gap-4 overflow-x-auto px-1 pb-4 sm:gap-5 lg:mt-12 lg:grid lg:grid-cols-4 lg:items-stretch lg:overflow-visible lg:px-0">
           {cards.map((property) => {
             const cover = property.property_images?.[0];
             const imageUrl =
@@ -62,7 +51,7 @@ export function PropertyFan({ properties }: { properties: PropertyWithRelations[
               <Link
                 key={property.id}
                 href={`/listings/${property.slug}`}
-                className="group flex w-[82vw] shrink-0 snap-center flex-col overflow-hidden rounded-2xl bg-alpine-card shadow-[0_30px_70px_-25px_rgba(0,0,0,0.85)] transition-transform duration-500 hover:-translate-y-1.5 sm:w-[320px] lg:w-auto"
+                className="group flex w-[min(82vw,330px)] shrink-0 snap-start flex-col overflow-hidden rounded-2xl bg-alpine-card shadow-[0_30px_70px_-25px_rgba(0,0,0,0.85)] transition-transform duration-500 hover:-translate-y-1.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white lg:w-auto"
               >
                 {/* Replaces the decorative phone chrome that used to sit here —
                     same slot, real data. Status and price are therefore not
@@ -134,12 +123,6 @@ export function PropertyFan({ properties }: { properties: PropertyWithRelations[
         </div>
       </div>
 
-      {/* In-flow ramp into the light body, so nothing sits on top of it. */}
-      <div
-        aria-hidden
-        className="h-28 lg:h-36"
-        style={{ background: `linear-gradient(180deg, ${BAND} 0%, ${LIGHT_BODY} 100%)` }}
-      />
     </section>
   );
 }

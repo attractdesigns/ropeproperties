@@ -14,6 +14,11 @@
 .DS_Store
 *.pem
 
+# database backups
+*.backup
+*.sql.gz
+*.dump
+
 # debug
 npm-debug.log*
 yarn-debug.log*
