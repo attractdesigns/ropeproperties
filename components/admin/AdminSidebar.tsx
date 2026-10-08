@@ -22,9 +22,7 @@ export function AdminSidebar({ userEmail }: { userEmail: string }) {
   const router = useRouter();
 
   const handleLogout = async () => {
-    const { createClient } = await import("@/lib/supabase/client");
-    const supabase = createClient();
-    await supabase.auth.signOut();
+    await fetch("/api/admin/auth/logout", { method: "POST" });
     router.push("/admin/login");
     router.refresh();
   };

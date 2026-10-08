@@ -4,6 +4,7 @@ import { useState, useCallback, useRef } from "react";
 import Image from "next/image";
 import { Upload } from "lucide-react";
 import { getStorageUrl } from "@/lib/storage";
+import { uploadAdminFile } from "@/lib/upload-client";
 import type { SiteSettings } from "@/lib/types";
 
 interface SiteSettingsFormProps {
@@ -31,18 +32,14 @@ export function SiteSettingsForm({ settings, defaults }: SiteSettingsFormProps) 
   const handleUpload = useCallback(async (file: File) => {
     setUploading(true);
     setError(null);
-    const path = `site/${Date.now()}-${Math.random().toString(36).slice(2)}-${file.name}`;
-    const { createClient } = await import("@/lib/supabase/client");
-    const supabase = createClient();
-    const { error } = await supabase.storage
-      .from("property-images")
-      .upload(path, file, { contentType: file.type });
-    if (error) {
+    try {
+      const fileId = await uploadAdminFile(file);
+      setHeroPath(fileId);
+    } catch {
       setError("Image upload failed. Please try again.");
-    } else {
-      setHeroPath(path);
+    } finally {
+      setUploading(false);
     }
-    setUploading(false);
   }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {

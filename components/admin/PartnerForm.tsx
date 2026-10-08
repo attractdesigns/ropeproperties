@@ -4,6 +4,7 @@ import { useState, useCallback, useRef } from "react";
 import Image from "next/image";
 import { Upload } from "lucide-react";
 import { getStorageUrl } from "@/lib/storage";
+import { uploadAdminFile } from "@/lib/upload-client";
 import type { PartnerCompany } from "@/lib/types";
 
 interface PartnerFormProps {
@@ -31,18 +32,14 @@ export function PartnerForm({ partner }: PartnerFormProps) {
   const handleLogoUpload = useCallback(async (file: File) => {
     setUploadingLogo(true);
     setError(null);
-    const path = `partners/${Date.now()}-${Math.random().toString(36).slice(2)}-${file.name}`;
-    const { createClient } = await import("@/lib/supabase/client");
-    const supabase = createClient();
-    const { error } = await supabase.storage
-      .from("property-images")
-      .upload(path, file, { contentType: file.type });
-    if (error) {
+    try {
+      const fileId = await uploadAdminFile(file);
+      setLogoPath(fileId);
+    } catch {
       setError("Logo upload failed. Please try again.");
-    } else {
-      setLogoPath(path);
+    } finally {
+      setUploadingLogo(false);
     }
-    setUploadingLogo(false);
   }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
