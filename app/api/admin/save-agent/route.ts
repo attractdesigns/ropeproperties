@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { requireAdminUser } from "@/lib/nhost/auth-server";
+import { gql } from "@/lib/nhost/gql";
 import { revalidatePath } from "next/cache";
 
 export async function POST(request: NextRequest) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
+  try {
+    await requireAdminUser();
+  } catch {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -18,22 +18,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Name is required" }, { status: 400 });
   }
 
-  // Only one agent may be the primary realtor (enforced by a unique index), so
-  // stand the current one down before promoting a new one. Exclude the record
-  // being saved — otherwise an edit demotes the very row it is about to promote,
-  // and the primary realtor silently disappears from the site.
   if (isPrimary) {
-    let demote = supabase
-      .from("agents")
-      .update({ is_primary: false })
-      .eq("is_primary", true);
+    // Demote any existing primary agents (exclude the record being saved).
+    const where: Record<string, unknown> = { is_primary: { _eq: true } };
+    if (id) where.id = { _neq: id };
 
-    if (id) demote = demote.neq("id", id);
-
-    const { error: demoteError } = await demote;
-    if (demoteError) {
-      return NextResponse.json({ error: demoteError.message }, { status: 500 });
-    }
+    await gql(`
+      mutation DemoteOtherPrimaries($where: agents_bool_exp!) {
+        update_agents(where: $where, _set: { is_primary: false }) { affected_rows }
+      }
+    `, { where });
   }
 
   const record = {
@@ -49,12 +43,18 @@ export async function POST(request: NextRequest) {
     is_primary: isPrimary,
   };
 
-  const { error } = id
-    ? await supabase.from("agents").update(record).eq("id", id)
-    : await supabase.from("agents").insert(record);
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  if (id) {
+    await gql(`
+      mutation UpdateAgent($id: uuid!, $set: agents_set_input!) {
+        update_agents_by_pk(pk_columns: { id: $id }, _set: $set) { id }
+      }
+    `, { id, set: record });
+  } else {
+    await gql(`
+      mutation InsertAgent($object: agents_insert_input!) {
+        insert_agents_one(object: $object) { id }
+      }
+    `, { object: record });
   }
 
   revalidatePath("/about", "page");

@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { gql } from "@/lib/nhost/gql";
 import { getStorageUrl } from "@/lib/storage";
 import { AgentForm } from "@/components/admin/AgentForm";
 import { DeleteButton } from "@/components/admin/DeleteButton";
@@ -9,12 +9,14 @@ import type { Agent } from "@/lib/types";
 export const dynamic = "force-dynamic";
 
 async function getAgents(): Promise<Agent[]> {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("agents")
-    .select("*")
-    .order("sort_order", { ascending: true });
-  return data ?? [];
+  const data = await gql<{ agents: Agent[] }>(`
+    query AdminAgents {
+      agents(order_by: { sort_order: asc }) {
+        id name role phone whatsapp email photo_path bio sort_order is_active is_primary
+      }
+    }
+  `);
+  return data.agents;
 }
 
 export default async function AdminAgentsPage() {
@@ -79,12 +81,7 @@ export default async function AdminAgentsPage() {
                     <td className="p-3 text-sm">{agent.is_active ? "✓" : "—"}</td>
                     <td className="p-3">
                       <div className="flex items-center gap-3">
-                        <Link
-                          href={`/admin/agents/${agent.id}/edit`}
-                          className="text-sm text-accent hover:text-accent-deep"
-                        >
-                          Edit
-                        </Link>
+                        <Link href={`/admin/agents/${agent.id}/edit`} className="text-sm text-accent hover:text-accent-deep">Edit</Link>
                         <DeleteButton id={agent.id} type="agent" title={agent.name} />
                       </div>
                     </td>

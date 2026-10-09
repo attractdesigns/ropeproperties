@@ -3,7 +3,7 @@ import { Footer } from "@/components/Footer";
 import { Section, SectionTitle } from "@/components/Section";
 import { OpportunityCard } from "@/components/OpportunityCard";
 import { PropertyCard } from "@/components/PropertyCard";
-import { createClient } from "@/lib/supabase/server";
+import { gql } from "@/lib/nhost/gql";
 import { REALTOR_NAME } from "@/lib/site";
 import type {
   InvestmentWithRelations,
@@ -13,34 +13,49 @@ import type {
 
 export const revalidate = 60;
 
-async function getOpportunities() {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("investment_opportunities")
-    .select(`
-      *,
-      investment_images (*),
-      agents (*)
-    `)
-    .neq("status", "draft")
-    .order("created_at", { ascending: false });
-  return (data ?? []) as unknown as InvestmentWithRelations[];
+const INVESTMENT_FIELDS = /* GraphQL */ `
+  id slug title description status investment_type city neighbourhood
+  roi_range min_entry duration map_embed_url is_featured agent_id created_at updated_at
+  investment_images(order_by: { sort_order: asc }) {
+    id opportunity_id storage_path alt sort_order
+  }
+  agents: agent { id name role phone whatsapp email photo_path bio is_primary is_active sort_order }
+`;
+
+const PROPERTY_FIELDS = /* GraphQL */ `
+  id slug title description status property_type price price_period
+  bedrooms bathrooms toilets parking size_sqm city neighbourhood
+  features map_embed_url is_featured is_investment investment_note
+  partner_id agent_id created_at updated_at
+  property_images(order_by: { sort_order: asc }) {
+    id property_id storage_path alt sort_order
+  }
+  agents: agent { id name role phone whatsapp email photo_path bio is_primary is_active sort_order }
+  partner_companies: partner_company { id name description logo_path website_url is_active sort_order }
+`;
+
+async function getOpportunities(): Promise<InvestmentWithRelations[]> {
+  const data = await gql<{ investment_opportunities: InvestmentWithRelations[] }>(`
+    query Opportunities {
+      investment_opportunities(
+        where: { status: { _neq: "draft" } }
+        order_by: { created_at: desc }
+      ) { ${INVESTMENT_FIELDS} }
+    }
+  `);
+  return data.investment_opportunities;
 }
 
-async function getInvestmentListings() {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("properties")
-    .select(`
-      *,
-      property_images (*),
-      agents (*),
-      partner_companies (*)
-    `)
-    .eq("is_investment", true)
-    .neq("status", "draft")
-    .order("created_at", { ascending: false });
-  return (data ?? []) as unknown as PropertyWithRelations[];
+async function getInvestmentListings(): Promise<PropertyWithRelations[]> {
+  const data = await gql<{ properties: PropertyWithRelations[] }>(`
+    query InvestmentListings {
+      properties(
+        where: { is_investment: { _eq: true }, status: { _neq: "draft" } }
+        order_by: { created_at: desc }
+      ) { ${PROPERTY_FIELDS} }
+    }
+  `);
+  return data.properties;
 }
 
 const steps = [
@@ -55,12 +70,8 @@ export default async function InvestPage() {
     getInvestmentListings(),
   ]);
 
-  // Sort: open/closing_soon first, then closed
   const order: Record<InvestmentStatus, number> = {
-    open: 0,
-    closing_soon: 1,
-    closed: 2,
-    draft: 3, // never published, but keeps the map exhaustive
+    open: 0, closing_soon: 1, closed: 2, draft: 3,
   };
   const sorted = [...opportunities].sort((a, b) => order[a.status] - order[b.status]);
 
@@ -68,7 +79,6 @@ export default async function InvestPage() {
     <>
       <Header />
       <main className="pt-16">
-        {/* Intro */}
         <Section>
           <div className="max-w-2xl">
             <SectionTitle>Invest with {REALTOR_NAME}</SectionTitle>
@@ -80,7 +90,6 @@ export default async function InvestPage() {
             </p>
           </div>
 
-          {/* How it works */}
           <div className="mt-12 grid md:grid-cols-3 gap-8">
             {steps.map((step) => (
               <div key={step.number}>
@@ -92,7 +101,6 @@ export default async function InvestPage() {
           </div>
         </Section>
 
-        {/* Opportunities grid */}
         {sorted.length > 0 && (
           <Section background="surface">
             <SectionTitle className="mb-10">Investment Opportunities</SectionTitle>
@@ -104,7 +112,6 @@ export default async function InvestPage() {
           </Section>
         )}
 
-        {/* Investment-grade listings */}
         {investmentListings.length > 0 && (
           <Section>
             <SectionTitle className="mb-10">Investment-Grade Listings</SectionTitle>
@@ -120,7 +127,6 @@ export default async function InvestPage() {
           </Section>
         )}
 
-        {/* Disclaimer */}
         <Section background="surface">
           <div className="border-l-2 border-accent pl-4 max-w-2xl">
             <p className="text-sm text-muted leading-relaxed">

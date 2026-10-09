@@ -9,7 +9,7 @@ import { InvestmentStatusBadge } from "@/components/StatusBadge";
 import { AgentCard } from "@/components/AgentCard";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { InvestmentInterestForm } from "@/components/forms/InvestmentInterestForm";
-import { createClient } from "@/lib/supabase/server";
+import { gql } from "@/lib/nhost/gql";
 import { getPrimaryRealtor } from "@/lib/realtor";
 import { getStorageUrl } from "@/lib/storage";
 import { formatPriceCompact } from "@/lib/format";
@@ -19,19 +19,25 @@ import { MapPin, TrendingUp, Wallet, Clock, Building } from "lucide-react";
 
 export const revalidate = 60;
 
+const INVESTMENT_FIELDS = /* GraphQL */ `
+  id slug title description status investment_type city neighbourhood
+  roi_range min_entry duration map_embed_url is_featured agent_id created_at updated_at
+  investment_images(order_by: { sort_order: asc }) {
+    id opportunity_id storage_path alt sort_order
+  }
+  agents: agent { id name role phone whatsapp email photo_path bio is_primary is_active sort_order }
+`;
+
 async function getOpportunity(slug: string): Promise<InvestmentWithRelations | null> {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("investment_opportunities")
-    .select(`
-      *,
-      investment_images (*),
-      agents (*)
-    `)
-    .eq("slug", slug)
-    .neq("status", "draft")
-    .single();
-  return data as unknown as InvestmentWithRelations | null;
+  const data = await gql<{ investment_opportunities: InvestmentWithRelations[] }>(`
+    query Opportunity($slug: String!) {
+      investment_opportunities(
+        where: { slug: { _eq: $slug }, status: { _neq: "draft" } }
+        limit: 1
+      ) { ${INVESTMENT_FIELDS} }
+    }
+  `, { slug });
+  return data.investment_opportunities[0] ?? null;
 }
 
 export async function generateMetadata({
@@ -74,7 +80,6 @@ export default async function OpportunityDetailPage({
   const opportunity = await getOpportunity(slug);
   if (!opportunity) notFound();
 
-  // Fall back to Opeoluwa when no specific advisor is assigned.
   const primaryRealtor = opportunity.agents ? null : await getPrimaryRealtor();
 
   const isClosed = opportunity.status === "closed";
@@ -85,12 +90,8 @@ export default async function OpportunityDetailPage({
       <Header />
       <main className="pt-16">
         <Section>
-          {/* Gallery */}
-          <GalleryCarousel
-            images={opportunity.investment_images}
-          />
+          <GalleryCarousel images={opportunity.investment_images} />
 
-          {/* Header */}
           <div className="mt-8">
             <div className="flex flex-wrap items-center gap-2 mb-2">
               <span className="inline-flex items-center px-2.5 py-1 text-xs font-medium uppercase tracking-wide bg-accent-tint text-accent-deep">
@@ -109,7 +110,6 @@ export default async function OpportunityDetailPage({
             )}
           </div>
 
-          {/* Key facts grid */}
           <div className="mt-8 grid grid-cols-2 md:grid-cols-5 gap-4 border-y border-line py-6">
             <FactItem icon={<Building size={18} />} label="Type" value={typeLabels[opportunity.investment_type] ?? opportunity.investment_type} />
             <FactItem icon={<MapPin size={18} />} label="Location" value={location} />
@@ -118,7 +118,6 @@ export default async function OpportunityDetailPage({
             <FactItem icon={<Clock size={18} />} label="Duration" value={opportunity.duration ?? "—"} />
           </div>
 
-          {/* Description + sidebar */}
           <div className="mt-8 grid md:grid-cols-3 gap-8">
             <div className="md:col-span-2">
               <h2 className="font-display text-xl text-ink mb-3">About this opportunity</h2>
@@ -141,7 +140,6 @@ export default async function OpportunityDetailPage({
               )}
             </div>
 
-            {/* Sidebar */}
             <div className="space-y-6">
               <AgentCard
                 agent={opportunity.agents ?? primaryRealtor}
@@ -165,9 +163,7 @@ export default async function OpportunityDetailPage({
 
               {isClosed && (
                 <div className="border border-line p-6 text-center bg-surface">
-                  <p className="text-muted">
-                    This opportunity is now closed for investment.
-                  </p>
+                  <p className="text-muted">This opportunity is now closed for investment.</p>
                   <p className="text-sm text-muted mt-2">
                     Browse{" "}
                     <Link href="/invest" className="text-accent hover:text-accent-deep">
@@ -179,7 +175,6 @@ export default async function OpportunityDetailPage({
             </div>
           </div>
 
-          {/* Disclaimer */}
           <div className="mt-12 border-l-2 border-accent pl-4 max-w-2xl">
             <p className="text-sm text-muted leading-relaxed">
               <strong className="text-ink">Disclaimer:</strong> Projected figures are

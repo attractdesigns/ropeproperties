@@ -1,26 +1,49 @@
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { gql } from "@/lib/nhost/gql";
 import { Phone } from "lucide-react";
+import type { Inquiry } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 async function getStats() {
-  const supabase = await createClient();
-
-  const [published, drafts, openOpportunities, unreadInquiries, latestInquiries] = await Promise.all([
-    supabase.from("properties").select("id", { count: "exact", head: true }).neq("status", "draft"),
-    supabase.from("properties").select("id", { count: "exact", head: true }).eq("status", "draft"),
-    supabase.from("investment_opportunities").select("id", { count: "exact", head: true }).in("status", ["open", "closing_soon"]),
-    supabase.from("inquiries").select("id", { count: "exact", head: true }).eq("is_read", false),
-    supabase.from("inquiries").select("*").order("created_at", { ascending: false }).limit(5),
-  ]);
+  const data = await gql<{
+    published: { aggregate: { count: number } };
+    drafts: { aggregate: { count: number } };
+    openOpportunities: { aggregate: { count: number } };
+    unreadInquiries: { aggregate: { count: number } };
+    latestInquiries: Inquiry[];
+  }>(`
+    query DashboardStats {
+      published: properties_aggregate(where: { status: { _neq: "draft" } }) {
+        aggregate { count }
+      }
+      drafts: properties_aggregate(where: { status: { _eq: "draft" } }) {
+        aggregate { count }
+      }
+      openOpportunities: investment_opportunities_aggregate(
+        where: { status: { _in: ["open", "closing_soon"] } }
+      ) {
+        aggregate { count }
+      }
+      unreadInquiries: inquiries_aggregate(where: { is_read: { _eq: false } }) {
+        aggregate { count }
+      }
+      latestInquiries: inquiries(
+        order_by: { created_at: desc }
+        limit: 5
+      ) {
+        id kind name phone message is_read created_at
+        property_id opportunity_id
+      }
+    }
+  `);
 
   return {
-    published: published.count ?? 0,
-    drafts: drafts.count ?? 0,
-    openOpportunities: openOpportunities.count ?? 0,
-    unreadInquiries: unreadInquiries.count ?? 0,
-    latestInquiries: latestInquiries.data ?? [],
+    published: data.published.aggregate.count,
+    drafts: data.drafts.aggregate.count,
+    openOpportunities: data.openOpportunities.aggregate.count,
+    unreadInquiries: data.unreadInquiries.aggregate.count,
+    latestInquiries: data.latestInquiries,
   };
 }
 
@@ -44,7 +67,6 @@ export default async function AdminDashboardPage() {
     <div>
       <h1 className="font-display text-2xl text-ink mb-6">Dashboard</h1>
 
-      {/* Stat cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         {statCards.map((stat) => (
           <Link
@@ -58,7 +80,6 @@ export default async function AdminDashboardPage() {
         ))}
       </div>
 
-      {/* Latest inquiries */}
       <div className="bg-white border border-line">
         <div className="flex items-center justify-between p-4 border-b border-line">
           <h2 className="font-display text-lg text-ink">Latest Inquiries</h2>
@@ -86,10 +107,7 @@ export default async function AdminDashboardPage() {
                   <p className="text-sm text-muted truncate">{inquiry.message}</p>
                 </div>
                 <div className="flex gap-2 shrink-0">
-                  <a
-                    href={`tel:${inquiry.phone.replace(/\s/g, "")}`}
-                    className="text-muted hover:text-accent"
-                  >
+                  <a href={`tel:${inquiry.phone.replace(/\s/g, "")}`} className="text-muted hover:text-accent">
                     <Phone size={16} />
                   </a>
                 </div>

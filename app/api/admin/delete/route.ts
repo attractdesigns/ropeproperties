@@ -1,46 +1,77 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { requireAdminUser } from "@/lib/nhost/auth-server";
+import { gql } from "@/lib/nhost/gql";
 import { revalidatePath } from "next/cache";
 
 export async function POST(request: NextRequest) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
+  try {
+    await requireAdminUser();
+  } catch {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { id, type } = await request.json();
 
-  let error: { message: string } | null = null;
+  switch (type) {
+    case "property":
+      await gql(`
+        mutation DeleteProperty($id: uuid!) {
+          delete_properties_by_pk(id: $id) { id }
+        }
+      `, { id });
+      revalidatePath("/listings", "page");
+      revalidatePath("/", "page");
+      break;
 
-  if (type === "property") {
-    ({ error } = await supabase.from("properties").delete().eq("id", id));
-    revalidatePath("/listings", "page");
-    revalidatePath("/", "page");
-  } else if (type === "opportunity") {
-    ({ error } = await supabase.from("investment_opportunities").delete().eq("id", id));
-    revalidatePath("/invest", "page");
-    revalidatePath("/", "page");
-  } else if (type === "agent") {
-    ({ error } = await supabase.from("agents").delete().eq("id", id));
-    revalidatePath("/about", "page");
-  } else if (type === "partner") {
-    ({ error } = await supabase.from("partner_companies").delete().eq("id", id));
-    revalidatePath("/about", "page");
-    revalidatePath("/", "page");
-  } else if (type === "inquiry") {
-    ({ error } = await supabase.from("inquiries").delete().eq("id", id));
-  } else if (type === "testimonial") {
-    ({ error } = await supabase.from("testimonials").delete().eq("id", id));
-    revalidatePath("/about", "page");
-    revalidatePath("/", "page");
-  } else {
-    return NextResponse.json({ error: "Invalid type" }, { status: 400 });
-  }
+    case "opportunity":
+      await gql(`
+        mutation DeleteOpportunity($id: uuid!) {
+          delete_investment_opportunities_by_pk(id: $id) { id }
+        }
+      `, { id });
+      revalidatePath("/invest", "page");
+      revalidatePath("/", "page");
+      break;
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    case "agent":
+      await gql(`
+        mutation DeleteAgent($id: uuid!) {
+          delete_agents_by_pk(id: $id) { id }
+        }
+      `, { id });
+      revalidatePath("/about", "page");
+      break;
+
+    case "partner":
+      await gql(`
+        mutation DeletePartner($id: uuid!) {
+          delete_partner_companies_by_pk(id: $id) { id }
+        }
+      `, { id });
+      revalidatePath("/about", "page");
+      revalidatePath("/", "page");
+      break;
+
+    case "inquiry":
+      await gql(`
+        mutation DeleteInquiry($id: uuid!) {
+          delete_inquiries_by_pk(id: $id) { id }
+        }
+      `, { id });
+      break;
+
+    case "testimonial":
+      await gql(`
+        mutation DeleteTestimonial($id: uuid!) {
+          delete_testimonials_by_pk(id: $id) { id }
+        }
+      `, { id });
+      revalidatePath("/about", "page");
+      revalidatePath("/", "page");
+      break;
+
+    default:
+      return NextResponse.json({ error: "Invalid type" }, { status: 400 });
   }
 
   return NextResponse.json({ success: true });

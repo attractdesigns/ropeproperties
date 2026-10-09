@@ -1,42 +1,44 @@
-import { createClient } from "@/lib/supabase/server";
+import { gql } from "@/lib/nhost/gql";
 import type { Agent, Testimonial } from "@/lib/types";
 
-/**
- * The realtor the site is built around (Opeoluwa).
- *
- * Listings may be assigned to a specific agent, but most are not — this is a
- * one-realtor practice with support staff, so anything unassigned should still
- * show a human contact rather than nothing.
- */
+const AGENT_FIELDS = /* GraphQL */ `
+  id name role phone whatsapp email photo_path bio sort_order is_active is_primary
+`;
+
 export async function getPrimaryRealtor(): Promise<Agent | null> {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("agents")
-    .select("*")
-    .eq("is_primary", true)
-    .eq("is_active", true)
-    .maybeSingle();
-  return data ?? null;
+  const data = await gql<{ agents: Agent[] }>(`
+    query PrimaryRealtor {
+      agents(
+        where: { is_primary: { _eq: true }, is_active: { _eq: true } }
+        limit: 1
+      ) { ${AGENT_FIELDS} }
+    }
+  `);
+  return data.agents[0] ?? null;
 }
 
-/** Support staff — everyone active who is not the primary realtor. */
 export async function getSupportStaff(): Promise<Agent[]> {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("agents")
-    .select("*")
-    .eq("is_active", true)
-    .eq("is_primary", false)
-    .order("sort_order", { ascending: true });
-  return data ?? [];
+  const data = await gql<{ agents: Agent[] }>(`
+    query SupportStaff {
+      agents(
+        where: { is_active: { _eq: true }, is_primary: { _eq: false } }
+        order_by: { sort_order: asc }
+      ) { ${AGENT_FIELDS} }
+    }
+  `);
+  return data.agents;
 }
 
 export async function getTestimonials(): Promise<Testimonial[]> {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("testimonials")
-    .select("*")
-    .eq("is_active", true)
-    .order("sort_order", { ascending: true });
-  return data ?? [];
+  const data = await gql<{ testimonials: Testimonial[] }>(`
+    query Testimonials {
+      testimonials(
+        where: { is_active: { _eq: true } }
+        order_by: { sort_order: asc }
+      ) {
+        id created_at client_name location quote sort_order is_active
+      }
+    }
+  `);
+  return data.testimonials;
 }

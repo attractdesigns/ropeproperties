@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { gql } from "@/lib/nhost/gql";
 import { TestimonialForm } from "@/components/admin/TestimonialForm";
 import { DeleteButton } from "@/components/admin/DeleteButton";
 import type { Testimonial } from "@/lib/types";
@@ -6,12 +6,14 @@ import type { Testimonial } from "@/lib/types";
 export const dynamic = "force-dynamic";
 
 async function getTestimonials(): Promise<Testimonial[]> {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("testimonials")
-    .select("*")
-    .order("sort_order", { ascending: true });
-  return data ?? [];
+  const data = await gql<{ testimonials: Testimonial[] }>(`
+    query AdminTestimonials {
+      testimonials(order_by: { sort_order: asc }) {
+        id created_at client_name location quote sort_order is_active
+      }
+    }
+  `);
+  return data.testimonials;
 }
 
 export default async function AdminTestimonialsPage() {
@@ -49,9 +51,7 @@ export default async function AdminTestimonialsPage() {
           <tbody className="divide-y divide-line">
             {testimonials.length === 0 ? (
               <tr>
-                <td colSpan={6} className="p-8 text-center text-muted">
-                  No testimonials yet.
-                </td>
+                <td colSpan={6} className="p-8 text-center text-muted">No testimonials yet.</td>
               </tr>
             ) : (
               testimonials.map((t) => (
@@ -62,11 +62,7 @@ export default async function AdminTestimonialsPage() {
                   <td className="p-3 text-sm text-muted">{t.sort_order}</td>
                   <td className="p-3 text-sm">{t.is_active ? "✓" : "—"}</td>
                   <td className="p-3">
-                    <DeleteButton
-                      id={t.id}
-                      type="testimonial"
-                      title={`testimonial from ${t.client_name}`}
-                    />
+                    <DeleteButton id={t.id} type="testimonial" title={`testimonial from ${t.client_name}`} />
                   </td>
                 </tr>
               ))

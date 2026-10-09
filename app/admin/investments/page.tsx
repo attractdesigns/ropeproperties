@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { createClient } from "@/lib/supabase/server";
+import { gql } from "@/lib/nhost/gql";
 import { getStorageUrl } from "@/lib/storage";
 import { formatPriceCompact } from "@/lib/format";
 import { InvestmentStatusBadge } from "@/components/StatusBadge";
@@ -17,16 +17,22 @@ const typeLabels: Record<string, string> = {
   flip: "Flip",
 };
 
-async function getOpportunities() {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("investment_opportunities")
-    .select(`
-      id, title, slug, status, investment_type, roi_range, min_entry, city, is_featured, updated_at,
-      investment_images (*)
-    `)
-    .order("updated_at", { ascending: false });
-  return data ?? [];
+type OppRow = Pick<InvestmentOpportunity, "id" | "title" | "slug" | "status" | "investment_type" | "roi_range" | "min_entry" | "city" | "is_featured" | "updated_at"> & {
+  investment_images: Pick<InvestmentImage, "id" | "storage_path" | "sort_order">[];
+};
+
+async function getOpportunities(): Promise<OppRow[]> {
+  const data = await gql<{ investment_opportunities: OppRow[] }>(`
+    query AdminInvestments {
+      investment_opportunities(order_by: { updated_at: desc }) {
+        id title slug status investment_type roi_range min_entry city is_featured updated_at
+        investment_images(order_by: { sort_order: asc }, limit: 1) {
+          id storage_path sort_order
+        }
+      }
+    }
+  `);
+  return data.investment_opportunities;
 }
 
 export default async function AdminInvestmentsPage() {
@@ -63,42 +69,30 @@ export default async function AdminInvestmentsPage() {
               <tr>
                 <td colSpan={8} className="p-8 text-center text-muted">
                   No opportunities yet.{" "}
-                  <Link href="/admin/investments/new" className="text-accent hover:text-accent-deep">
-                    Create one
-                  </Link>
+                  <Link href="/admin/investments/new" className="text-accent hover:text-accent-deep">Create one</Link>
                 </td>
               </tr>
             ) : (
-              opportunities.map((opp) => {
-                const o = opp as unknown as InvestmentOpportunity & { investment_images: InvestmentImage[] };
-                const coverImage = o.investment_images?.[0];
-                const imageUrl = getStorageUrl(coverImage?.storage_path);
+              opportunities.map((o) => {
+                const imageUrl = getStorageUrl(o.investment_images?.[0]?.storage_path);
                 return (
                   <tr key={o.id} className="hover:bg-surface">
                     <td className="p-3">
                       <div className="relative w-12 h-12 bg-surface border border-line">
-                        {imageUrl && (
-                          <Image src={imageUrl} alt={o.title} fill sizes="48px" className="object-cover" />
-                        )}
+                        {imageUrl && <Image src={imageUrl} alt={o.title} fill sizes="48px" className="object-cover" />}
                       </div>
                     </td>
                     <td className="p-3">
-                      <Link href={`/admin/investments/${o.id}/edit`} className="text-sm text-ink hover:text-accent">
-                        {o.title}
-                      </Link>
+                      <Link href={`/admin/investments/${o.id}/edit`} className="text-sm text-ink hover:text-accent">{o.title}</Link>
                     </td>
                     <td className="p-3 text-sm text-muted">{typeLabels[o.investment_type] ?? o.investment_type}</td>
                     <td className="p-3"><InvestmentStatusBadge status={o.status} /></td>
                     <td className="p-3 text-sm text-muted">{o.roi_range ?? "—"}</td>
-                    <td className="p-3 text-sm text-muted">
-                      {o.min_entry != null ? `From ${formatPriceCompact(o.min_entry)}` : "—"}
-                    </td>
+                    <td className="p-3 text-sm text-muted">{o.min_entry != null ? `From ${formatPriceCompact(o.min_entry)}` : "—"}</td>
                     <td className="p-3 text-sm text-muted">{o.city}</td>
                     <td className="p-3">
                       <div className="flex gap-2">
-                        <Link href={`/admin/investments/${o.id}/edit`} className="text-sm text-accent hover:text-accent-deep">
-                          Edit
-                        </Link>
+                        <Link href={`/admin/investments/${o.id}/edit`} className="text-sm text-accent hover:text-accent-deep">Edit</Link>
                         <DeleteButton id={o.id} type="opportunity" title={o.title} />
                       </div>
                     </td>

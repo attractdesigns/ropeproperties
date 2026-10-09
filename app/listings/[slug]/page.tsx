@@ -10,7 +10,7 @@ import { AgentCard } from "@/components/AgentCard";
 import { MobileContactBar } from "@/components/MobileContactBar";
 import { ViewingForm } from "@/components/forms/ViewingForm";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
-import { createClient } from "@/lib/supabase/server";
+import { gql } from "@/lib/nhost/gql";
 import { getPrimaryRealtor } from "@/lib/realtor";
 import { getStorageUrl } from "@/lib/storage";
 import { formatPriceWithPeriod } from "@/lib/format";
@@ -19,20 +19,28 @@ import { Check, MapPin, ExternalLink } from "lucide-react";
 
 export const revalidate = 60;
 
+const PROPERTY_FIELDS = /* GraphQL */ `
+  id slug title description status property_type price price_period
+  bedrooms bathrooms toilets parking size_sqm city neighbourhood address
+  features map_embed_url is_featured is_investment investment_note
+  partner_id agent_id created_at updated_at
+  property_images(order_by: { sort_order: asc }) {
+    id property_id storage_path alt sort_order
+  }
+  agents: agent { id name role phone whatsapp email photo_path bio is_primary is_active sort_order }
+  partner_companies: partner_company { id name description logo_path website_url is_active sort_order }
+`;
+
 async function getProperty(slug: string): Promise<PropertyWithRelations | null> {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("properties")
-    .select(`
-      *,
-      property_images (*),
-      agents (*),
-      partner_companies (*)
-    `)
-    .eq("slug", slug)
-    .neq("status", "draft")
-    .single();
-  return data as unknown as PropertyWithRelations | null;
+  const data = await gql<{ properties: PropertyWithRelations[] }>(`
+    query Property($slug: String!) {
+      properties(
+        where: { slug: { _eq: $slug }, status: { _neq: "draft" } }
+        limit: 1
+      ) { ${PROPERTY_FIELDS} }
+    }
+  `, { slug });
+  return data.properties[0] ?? null;
 }
 
 export async function generateMetadata({
@@ -67,8 +75,6 @@ export default async function PropertyDetailPage({
   const property = await getProperty(slug);
   if (!property) notFound();
 
-  // Most listings aren't assigned to anyone — this is a one-realtor practice, so
-  // fall back to Opeoluwa rather than showing no contact at all.
   const primaryRealtor = property.agents ? null : await getPrimaryRealtor();
 
   const isSold = property.status === "sold";
@@ -99,12 +105,8 @@ export default async function PropertyDetailPage({
       <Header />
       <main className="pt-16">
         <Section>
-          {/* Gallery */}
-          <GalleryCarousel
-            images={property.property_images}
-          />
+          <GalleryCarousel images={property.property_images} />
 
-          {/* Header row */}
           <div className="mt-8 flex flex-col md:flex-row md:items-start md:justify-between gap-4">
             <div>
               <div className="flex flex-wrap items-center gap-2 mb-2">
@@ -131,7 +133,6 @@ export default async function PropertyDetailPage({
             </div>
           </div>
 
-          {/* Partner attribution */}
           {property.partner_companies && (
             <div className="mt-4 flex items-center gap-2 text-sm text-muted">
               <span>Listed by</span>
@@ -149,7 +150,6 @@ export default async function PropertyDetailPage({
             </div>
           )}
 
-          {/* Spec grid */}
           <div className="mt-8 grid grid-cols-2 gap-4 border-y border-line py-6 sm:grid-cols-3 md:grid-cols-6">
             <SpecItem label="Beds" value={property.bedrooms} />
             <SpecItem label="Baths" value={property.bathrooms} />
@@ -159,7 +159,6 @@ export default async function PropertyDetailPage({
             <SpecItem label="Type" value={formatType(property.property_type)} />
           </div>
 
-          {/* Description + Features */}
           <div className="mt-8 grid md:grid-cols-3 gap-8">
             <div className="md:col-span-2">
               <h2 className="font-display text-xl text-ink mb-3">Description</h2>
@@ -181,7 +180,6 @@ export default async function PropertyDetailPage({
                 </div>
               )}
 
-              {/* Map */}
               {property.map_embed_url && (
                 <div className="mt-8">
                   <h2 className="font-display text-xl text-ink mb-4">Location</h2>
@@ -197,8 +195,6 @@ export default async function PropertyDetailPage({
               )}
             </div>
 
-            {/* Sidebar: Agent + Form — sticky on desktop so the contact rail
-                stays beside the description as the visitor scrolls. */}
             <div className="space-y-6 md:sticky md:top-24 md:self-start">
               <AgentCard
                 agent={property.agents ?? primaryRealtor}
@@ -224,9 +220,7 @@ export default async function PropertyDetailPage({
 
               {isSold && (
                 <div className="border border-line p-6 text-center bg-surface">
-                  <p className="text-muted">
-                    This property is no longer available.
-                  </p>
+                  <p className="text-muted">This property is no longer available.</p>
                   <p className="text-sm text-muted mt-2">
                     Browse{" "}
                     <Link href="/listings" className="text-accent hover:text-accent-deep">

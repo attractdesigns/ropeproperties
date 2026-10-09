@@ -1,29 +1,36 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { requireAdminUser } from "@/lib/nhost/auth-server";
+import { gql } from "@/lib/nhost/gql";
 import { revalidatePath } from "next/cache";
 
 export async function POST(request: NextRequest) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
+  try {
+    await requireAdminUser();
+  } catch {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const body = await request.json();
 
-  // The settings row is created by the migration, but upsert so a missing row
-  // repairs itself rather than silently saving nothing.
-  const { error } = await supabase.from("site_settings").upsert({
-    id: 1,
-    hero_image_path: body.hero_image_path ?? null,
-    hero_heading: body.hero_heading ?? null,
-    hero_subheading: body.hero_subheading ?? null,
+  await gql(`
+    mutation UpsertSiteSettings($object: site_settings_insert_input!) {
+      insert_site_settings_one(
+        object: $object
+        on_conflict: {
+          constraint: site_settings_pkey
+          update_columns: [hero_image_path, hero_heading, hero_subheading, updated_at]
+        }
+      ) { id }
+    }
+  `, {
+    object: {
+      id: 1,
+      hero_image_path: body.hero_image_path ?? null,
+      hero_heading: body.hero_heading ?? null,
+      hero_subheading: body.hero_subheading ?? null,
+      updated_at: new Date().toISOString(),
+    },
   });
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
 
   revalidatePath("/", "page");
 

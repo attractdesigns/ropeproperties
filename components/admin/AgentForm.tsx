@@ -4,6 +4,7 @@ import { useState, useCallback, useRef } from "react";
 import Image from "next/image";
 import { Upload } from "lucide-react";
 import { getStorageUrl } from "@/lib/storage";
+import { uploadAdminFile } from "@/lib/upload-client";
 import type { Agent } from "@/lib/types";
 
 interface AgentFormProps {
@@ -31,18 +32,14 @@ export function AgentForm({ agent }: AgentFormProps) {
   const handlePhotoUpload = useCallback(async (file: File) => {
     setUploadingPhoto(true);
     setError(null);
-    const path = `agents/${Date.now()}-${Math.random().toString(36).slice(2)}-${file.name}`;
-    const { createClient } = await import("@/lib/supabase/client");
-    const supabase = createClient();
-    const { error } = await supabase.storage
-      .from("property-images")
-      .upload(path, file, { contentType: file.type });
-    if (error) {
+    try {
+      const fileId = await uploadAdminFile(file);
+      setPhotoPath(fileId);
+    } catch {
       setError("Photo upload failed. Please try again.");
-    } else {
-      setPhotoPath(path);
+    } finally {
+      setUploadingPhoto(false);
     }
-    setUploadingPhoto(false);
   }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {

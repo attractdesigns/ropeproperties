@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { createClient } from "@/lib/supabase/server";
+import { gql } from "@/lib/nhost/gql";
 import { getStorageUrl } from "@/lib/storage";
 import { formatPriceCompactWithPeriod } from "@/lib/format";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -9,16 +9,22 @@ import type { Property, PropertyImage } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-async function getProperties() {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("properties")
-    .select(`
-      id, title, slug, status, price, price_period, city, is_featured, updated_at,
-      property_images (*)
-    `)
-    .order("updated_at", { ascending: false });
-  return data ?? [];
+type ListingRow = Pick<Property, "id" | "title" | "slug" | "status" | "price" | "price_period" | "city" | "is_featured" | "updated_at"> & {
+  property_images: Pick<PropertyImage, "id" | "storage_path" | "sort_order">[];
+};
+
+async function getProperties(): Promise<ListingRow[]> {
+  const data = await gql<{ properties: ListingRow[] }>(`
+    query AdminListings {
+      properties(order_by: { updated_at: desc }) {
+        id title slug status price price_period city is_featured updated_at
+        property_images(order_by: { sort_order: asc }, limit: 1) {
+          id storage_path sort_order
+        }
+      }
+    }
+  `);
+  return data.properties;
 }
 
 export default async function AdminListingsPage() {
@@ -61,50 +67,30 @@ export default async function AdminListingsPage() {
                 </td>
               </tr>
             ) : (
-              properties.map((property) => {
-                const p = property as unknown as Property & { property_images: PropertyImage[] };
-                const coverImage = p.property_images?.[0];
-                const imageUrl = getStorageUrl(coverImage?.storage_path);
+              properties.map((p) => {
+                const imageUrl = getStorageUrl(p.property_images?.[0]?.storage_path);
                 return (
                   <tr key={p.id} className="hover:bg-surface transition-colors">
                     <td className="p-3">
                       <div className="relative w-12 h-12 bg-surface border border-line">
                         {imageUrl && (
-                          <Image
-                            src={imageUrl}
-                            alt={p.title}
-                            fill
-                            sizes="48px"
-                            className="object-cover"
-                          />
+                          <Image src={imageUrl} alt={p.title} fill sizes="48px" className="object-cover" />
                         )}
                       </div>
                     </td>
                     <td className="p-3">
-                      <Link
-                        href={`/admin/listings/${p.id}/edit`}
-                        className="text-sm text-ink hover:text-accent"
-                      >
+                      <Link href={`/admin/listings/${p.id}/edit`} className="text-sm text-ink hover:text-accent">
                         {p.title}
                       </Link>
                     </td>
                     <td className="p-3"><StatusBadge status={p.status} /></td>
-                    <td className="p-3 text-sm text-ink">
-                      {formatPriceCompactWithPeriod(p.price, p.price_period)}
-                    </td>
+                    <td className="p-3 text-sm text-ink">{formatPriceCompactWithPeriod(p.price, p.price_period)}</td>
                     <td className="p-3 text-sm text-muted">{p.city}</td>
                     <td className="p-3 text-sm">{p.is_featured ? "★" : ""}</td>
-                    <td className="p-3 text-sm text-muted">
-                      {new Date(p.updated_at).toLocaleDateString()}
-                    </td>
+                    <td className="p-3 text-sm text-muted">{new Date(p.updated_at).toLocaleDateString()}</td>
                     <td className="p-3">
                       <div className="flex gap-2">
-                        <Link
-                          href={`/admin/listings/${p.id}/edit`}
-                          className="text-sm text-accent hover:text-accent-deep"
-                        >
-                          Edit
-                        </Link>
+                        <Link href={`/admin/listings/${p.id}/edit`} className="text-sm text-accent hover:text-accent-deep">Edit</Link>
                         <DeleteButton id={p.id} type="property" title={p.title} />
                       </div>
                     </td>

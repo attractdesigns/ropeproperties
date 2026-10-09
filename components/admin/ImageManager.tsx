@@ -3,6 +3,8 @@
 import { useState, useCallback, useRef } from "react";
 import Image from "next/image";
 import { Upload, X, GripVertical } from "lucide-react";
+import { getStorageUrl } from "@/lib/storage";
+import { uploadAdminFile } from "@/lib/upload-client";
 
 export interface UploadedImage {
   id?: string;
@@ -30,23 +32,17 @@ export function ImageManager({ images, onChange, uploadPrefix }: ImageManagerPro
     for (const file of Array.from(files)) {
       // Compress/resize client-side
       const resized = await resizeImage(file, 1920);
-      const path = `${uploadPrefix}/${Date.now()}-${Math.random().toString(36).slice(2)}-${file.name}`;
 
-      // Upload to Supabase Storage
-      const { createClient } = await import("@/lib/supabase/client");
-      const supabase = createClient();
-
-      const { error } = await supabase.storage
-        .from("property-images")
-        .upload(path, resized, { contentType: file.type });
-
-      if (!error) {
+      try {
+        const fileId = await uploadAdminFile(resized);
         newImages.push({
-          storage_path: path,
+          storage_path: fileId,
           sort_order: images.length + newImages.length,
           alt: null,
           isNew: true,
         });
+      } catch {
+        // Skip files that fail to upload; the rest of the batch continues.
       }
     }
 
@@ -78,11 +74,7 @@ export function ImageManager({ images, onChange, uploadPrefix }: ImageManagerPro
     setDraggedIndex(index);
   };
 
-  const getThumbUrl = (path: string) => {
-    if (path.startsWith("http")) return path;
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    return `${supabaseUrl}/storage/v1/object/public/property-images/${path}`;
-  };
+  const getThumbUrl = (path: string) => getStorageUrl(path) ?? "";
 
   return (
     <div>

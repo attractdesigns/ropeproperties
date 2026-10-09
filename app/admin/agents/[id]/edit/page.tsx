@@ -1,16 +1,21 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
+import { gql } from "@/lib/nhost/gql";
 import { AgentForm } from "@/components/admin/AgentForm";
 import type { Agent } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 async function getAgent(id: string): Promise<Agent | null> {
-  const supabase = await createClient();
-  const { data } = await supabase.from("agents").select("*").eq("id", id).maybeSingle();
-  return data ?? null;
+  const data = await gql<{ agents: Agent[] }>(`
+    query EditAgent($id: uuid!) {
+      agents(where: { id: { _eq: $id } }, limit: 1) {
+        id name role phone whatsapp email photo_path bio sort_order is_active is_primary
+      }
+    }
+  `, { id });
+  return data.agents[0] ?? null;
 }
 
 export default async function EditAgentPage({
@@ -24,10 +29,7 @@ export default async function EditAgentPage({
 
   return (
     <div>
-      <Link
-        href="/admin/agents"
-        className="inline-flex items-center gap-1 text-sm text-muted hover:text-ink mb-4"
-      >
+      <Link href="/admin/agents" className="inline-flex items-center gap-1 text-sm text-muted hover:text-ink mb-4">
         <ArrowLeft size={14} /> Back to agents
       </Link>
 

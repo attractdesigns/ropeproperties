@@ -9,7 +9,7 @@ import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { PartnerModal } from "@/components/PartnerModal";
 import { ImmersiveHero } from "@/components/ImmersiveHero";
 import { PropertyFan } from "@/components/PropertyFan";
-import { createClient } from "@/lib/supabase/server";
+import { gql } from "@/lib/nhost/gql";
 import { getTestimonials, getPrimaryRealtor } from "@/lib/realtor";
 import { getStorageUrl } from "@/lib/storage";
 import { getSiteSettings, HERO_DEFAULTS } from "@/lib/settings";
@@ -18,56 +18,76 @@ import type { PropertyWithRelations, InvestmentWithRelations, PartnerCompany } f
 
 export const revalidate = 60;
 
+const PROPERTY_FIELDS = /* GraphQL */ `
+  id slug title description status property_type price price_period
+  bedrooms bathrooms toilets parking size_sqm city neighbourhood
+  features map_embed_url is_featured is_investment investment_note
+  partner_id agent_id created_at updated_at
+  property_images(order_by: { sort_order: asc }) {
+    id property_id storage_path alt sort_order
+  }
+  agents: agent { id name role phone whatsapp email photo_path bio is_primary is_active sort_order }
+  partner_companies: partner_company { id name description logo_path website_url is_active sort_order }
+`;
+
+const INVESTMENT_FIELDS = /* GraphQL */ `
+  id slug title description status investment_type city neighbourhood
+  roi_range min_entry duration map_embed_url is_featured agent_id created_at updated_at
+  investment_images(order_by: { sort_order: asc }) {
+    id opportunity_id storage_path alt sort_order
+  }
+  agents: agent { id name role phone whatsapp email photo_path bio is_primary is_active sort_order }
+`;
+
 async function getPartners(): Promise<PartnerCompany[]> {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("partner_companies")
-    .select("*")
-    .eq("is_active", true)
-    .order("sort_order", { ascending: true });
-  return data ?? [];
+  const data = await gql<{ partner_companies: PartnerCompany[] }>(`
+    query Partners {
+      partner_companies(
+        where: { is_active: { _eq: true } }
+        order_by: { sort_order: asc }
+      ) { id name logo_path website_url description sort_order is_active }
+    }
+  `);
+  return data.partner_companies;
 }
 
-async function getFeaturedProperties() {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("properties")
-    .select(`
-      *,
-      property_images (*),
-      agents (*),
-      partner_companies (*)
-    `)
-    .eq("is_featured", true)
-    .neq("status", "draft")
-    .order("created_at", { ascending: false })
-    .limit(6);
-  return (data ?? []) as unknown as PropertyWithRelations[];
+async function getFeaturedProperties(): Promise<PropertyWithRelations[]> {
+  const data = await gql<{ properties: PropertyWithRelations[] }>(`
+    query FeaturedProperties {
+      properties(
+        where: { is_featured: { _eq: true }, status: { _neq: "draft" } }
+        order_by: { created_at: desc }
+        limit: 6
+      ) { ${PROPERTY_FIELDS} }
+    }
+  `);
+  return data.properties;
 }
 
-async function getCities() {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("properties")
-    .select("city")
-    .neq("status", "draft");
-  const cities = [...new Set((data ?? []).map((p) => p.city))];
-  return cities.sort();
+async function getCities(): Promise<string[]> {
+  const data = await gql<{ properties: { city: string }[] }>(`
+    query Cities {
+      properties(
+        where: { status: { _neq: "draft" } }
+        distinct_on: city
+        order_by: { city: asc }
+      ) { city }
+    }
+  `);
+  return data.properties.map((p) => p.city);
 }
 
-async function getFeaturedOpportunities() {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("investment_opportunities")
-    .select(`
-      *,
-      investment_images (*),
-      agents (*)
-    `)
-    .in("status", ["open", "closing_soon"])
-    .order("created_at", { ascending: false })
-    .limit(3);
-  return (data ?? []) as unknown as InvestmentWithRelations[];
+async function getFeaturedOpportunities(): Promise<InvestmentWithRelations[]> {
+  const data = await gql<{ investment_opportunities: InvestmentWithRelations[] }>(`
+    query FeaturedOpportunities {
+      investment_opportunities(
+        where: { status: { _in: ["open", "closing_soon"] } }
+        order_by: { created_at: desc }
+        limit: 3
+      ) { ${INVESTMENT_FIELDS} }
+    }
+  `);
+  return data.investment_opportunities;
 }
 
 const services = [
@@ -82,14 +102,10 @@ export default function HomePage() {
     <>
       <Header />
       <main>
-        {/* Hero + the featured band it hands off to. There is no separate
-            "Featured Listings" grid below them. */}
         <Hero />
 
-        {/* About Teaser */}
         <AboutTeaser />
 
-        {/* Services Strip */}
         <Section>
           <SectionTitle align="center" className="mb-8 sm:mb-12">
             How I can help
@@ -110,16 +126,12 @@ export default function HomePage() {
           </div>
         </Section>
 
-        {/* Investment Teaser */}
         <InvestmentTeaser />
 
-        {/* Partners */}
         <Partners />
 
-        {/* Social proof */}
         <Testimonials />
 
-        {/* CTA Band */}
         <Section background="surface">
           <div className="text-center max-w-xl mx-auto">
             <SectionTitle>Looking for something specific?</SectionTitle>
@@ -150,8 +162,6 @@ export default function HomePage() {
 }
 
 async function Hero() {
-  // Image and copy come from Admin → Site settings; HERO_DEFAULTS keeps the
-  // homepage intact if the row is empty or the migration hasn't been run.
   const [settings, properties, cities] = await Promise.all([
     getSiteSettings(),
     getFeaturedProperties(),
@@ -171,16 +181,12 @@ async function Hero() {
         subheading={subheading}
         imageUrl={imageUrl}
       />
-      {/* Its own dark band, a tone lighter than the hero, ramping into the
-          light body the About teaser opens on. */}
       <PropertyFan properties={properties} />
     </>
   );
 }
 
 async function AboutTeaser() {
-  // Uses the primary realtor's uploaded portrait so this and the About page can
-  // never drift apart — changing the photo in Admin → Agents updates both.
   const realtor = await getPrimaryRealtor();
   const portraitUrl = getStorageUrl(realtor?.photo_path);
 
@@ -197,7 +203,6 @@ async function AboutTeaser() {
               className="object-cover"
             />
           ) : (
-            // No portrait uploaded yet — upload one under Admin → Agents.
             <div className="w-full h-full flex items-center justify-center font-display text-6xl text-muted">
               {REALTOR_NAME.charAt(0)}
             </div>
