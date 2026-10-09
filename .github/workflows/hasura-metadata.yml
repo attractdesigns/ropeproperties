@@ -1,0 +1,35 @@
+name: Deploy Hasura metadata
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "hasura/metadata.json"
+
+jobs:
+  deploy-metadata:
+    runs-on: ubuntu-latest
+    env:
+      NHOST_SUBDOMAIN: tgtsxwdcxongwyleucom
+      NHOST_REGION: eu-central-1
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Apply metadata to Nhost
+        run: |
+          node -e "
+            const fs = require('fs');
+            const metadata = JSON.parse(fs.readFileSync('hasura/metadata.json', 'utf8'));
+            fs.writeFileSync('/tmp/replace_body.json', JSON.stringify({ type: 'replace_metadata', args: metadata }));
+          "
+          status=$(curl -s -o response.json -w "%{http_code}" \
+            -X POST "https://${NHOST_SUBDOMAIN}.hasura.${NHOST_REGION}.nhost.run/v1/metadata" \
+            -H "Content-Type: application/json" \
+            -H "x-hasura-admin-secret: ${{ secrets.NHOST_ADMIN_SECRET }}" \
+            -d @/tmp/replace_body.json)
+          echo "HTTP status: $status"
+          cat response.json
+          if [ "$status" -ne 200 ]; then
+            echo "::error::Metadata deploy failed"
+            exit 1
+          fi
