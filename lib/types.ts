@@ -68,6 +68,27 @@ export type Testimonial = {
   is_active: boolean;
 }
 
+export type PlotOption = {
+  size_sqm: number;
+  price: number;
+  initial_deposit: number | null;
+  suggested_use: string | null;
+}
+
+export type PaymentTerms = {
+  /** Short title-document label, e.g. "Government-allocated C of O". */
+  title_doc?: string | null;
+  /** Short payment-plan label shown in the spec row. */
+  payment_plan?: string | null;
+  /** Bullet points for the highlighted terms panel. */
+  highlights?: string[];
+  /** Closing "confirm before committing" note. */
+  disclaimer?: string | null;
+}
+
+/** Developer-advertised return for one term — not a guarantee. */
+export type AdvertisedReturn = { term: string; return: string }
+
 export type PropertyImage = {
   id: string;
   property_id: string;
@@ -102,6 +123,9 @@ export type Property = {
   investment_note: string | null;
   partner_id: string | null;
   agent_id: string | null;
+  /** Optional structured plot sizes/prices (land listings). */
+  plot_options?: PlotOption[] | null;
+  payment_terms?: PaymentTerms | null;
 }
 
 // Property with related data (for display)
@@ -136,6 +160,7 @@ export type InvestmentOpportunity = {
   map_embed_url: string | null;
   is_featured: boolean;
   agent_id: string | null;
+  advertised_returns?: AdvertisedReturn[] | null;
 }
 
 export type InvestmentWithRelations = InvestmentOpportunity & {

@@ -13,6 +13,8 @@ import { gql } from "@/lib/nhost/gql";
 import { getPrimaryRealtor } from "@/lib/realtor";
 import { getStorageUrl } from "@/lib/storage";
 import { formatPriceCompact } from "@/lib/format";
+import { withImageSizes } from "@/lib/image-size";
+import { MobileContactBar, InlineContactActions } from "@/components/MobileContactBar";
 import { REALTOR_NAME } from "@/lib/site";
 import type { InvestmentWithRelations } from "@/lib/types";
 import { MapPin, TrendingUp, Wallet, Clock, Building } from "lucide-react";
@@ -22,6 +24,7 @@ export const revalidate = 60;
 const INVESTMENT_FIELDS = /* GraphQL */ `
   id slug title description status investment_type city neighbourhood
   roi_range min_entry duration map_embed_url is_featured agent_id created_at updated_at
+  advertised_returns
   investment_images(order_by: { sort_order: asc }) {
     id opportunity_id storage_path alt sort_order
   }
@@ -80,17 +83,31 @@ export default async function OpportunityDetailPage({
   const opportunity = await getOpportunity(slug);
   if (!opportunity) notFound();
 
-  const primaryRealtor = opportunity.agents ? null : await getPrimaryRealtor();
+  const [primaryRealtor, galleryImages] = await Promise.all([
+    opportunity.agents ? null : getPrimaryRealtor(),
+    withImageSizes(opportunity.investment_images),
+  ]);
+  const contact = opportunity.agents ?? primaryRealtor;
+  const returns = opportunity.advertised_returns ?? [];
 
   const isClosed = opportunity.status === "closed";
   const location = [opportunity.neighbourhood, opportunity.city].filter(Boolean).join(", ");
+
+  // Skip facts we have no value for rather than printing a dash.
+  const facts = [
+    { icon: <Building size={18} />, label: "Type", value: typeLabels[opportunity.investment_type] ?? opportunity.investment_type },
+    { icon: <MapPin size={18} />, label: "Location", value: location },
+    { icon: <TrendingUp size={18} />, label: "Projected ROI", value: opportunity.roi_range ?? "" },
+    { icon: <Wallet size={18} />, label: "Min Entry", value: opportunity.min_entry != null ? `From ${formatPriceCompact(opportunity.min_entry)}` : "" },
+    { icon: <Clock size={18} />, label: "Duration", value: opportunity.duration ?? "" },
+  ].filter((f) => f.value);
 
   return (
     <>
       <Header />
       <main className="pt-16">
         <Section>
-          <GalleryCarousel images={opportunity.investment_images} />
+          <GalleryCarousel images={galleryImages} title={opportunity.title} />
 
           <div className="mt-8">
             <div className="flex flex-wrap items-center gap-2 mb-2">
@@ -110,13 +127,42 @@ export default async function OpportunityDetailPage({
             )}
           </div>
 
-          <div className="mt-8 grid grid-cols-2 md:grid-cols-5 gap-4 border-y border-line py-6">
-            <FactItem icon={<Building size={18} />} label="Type" value={typeLabels[opportunity.investment_type] ?? opportunity.investment_type} />
-            <FactItem icon={<MapPin size={18} />} label="Location" value={location} />
-            <FactItem icon={<TrendingUp size={18} />} label="Projected ROI" value={opportunity.roi_range ?? "—"} />
-            <FactItem icon={<Wallet size={18} />} label="Min Entry" value={opportunity.min_entry != null ? `From ${formatPriceCompact(opportunity.min_entry)}` : "—"} />
-            <FactItem icon={<Clock size={18} />} label="Duration" value={opportunity.duration ?? "—"} />
+          {!isClosed && (
+            <InlineContactActions
+              phone={contact?.phone ?? null}
+              whatsapp={contact?.whatsapp ?? null}
+              context={opportunity.title}
+            />
+          )}
+
+          <div className="mt-8 grid grid-cols-2 gap-4 border-y border-line py-6 md:grid-cols-[repeat(auto-fit,minmax(130px,1fr))]">
+            {facts.map((f) => (
+              <FactItem key={f.label} icon={f.icon} label={f.label} value={f.value} />
+            ))}
           </div>
+
+          {returns.length > 0 && (
+            <section
+              aria-labelledby="returns-heading"
+              className="mt-6 rounded-xl border border-accent/40 bg-accent-tint p-5"
+            >
+              <h2 id="returns-heading" className="font-display text-lg text-ink">
+                Developer-advertised buyback returns
+              </h2>
+              <ul className="mt-3 grid grid-cols-3 gap-3 text-center">
+                {returns.map((r) => (
+                  <li key={r.term} className="rounded-lg bg-bg px-2 py-3">
+                    <p className="font-display text-2xl text-accent">{r.return}</p>
+                    <p className="mt-1 text-xs text-muted">after {r.term}</p>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-3 text-sm text-muted">
+                These are the developer&apos;s advertised buyback figures, not guaranteed
+                returns, and are subject to the developer&apos;s terms and conditions.
+              </p>
+            </section>
+          )}
 
           <div className="mt-8 grid md:grid-cols-3 gap-8">
             <div className="md:col-span-2">
@@ -152,7 +198,7 @@ export default async function OpportunityDetailPage({
                     message={`Hello, I'm interested in "${opportunity.title}". Please get in touch.`}
                     label={`WhatsApp ${REALTOR_NAME}`}
                     variant="solid"
-                    className="w-full justify-center"
+                    className="hidden w-full justify-center md:inline-flex"
                   />
                   <InvestmentInterestForm
                     opportunityId={opportunity.id}
@@ -185,6 +231,13 @@ export default async function OpportunityDetailPage({
         </Section>
       </main>
       <Footer />
+      {!isClosed && (
+        <MobileContactBar
+          phone={contact?.phone ?? null}
+          whatsapp={contact?.whatsapp ?? null}
+          context={opportunity.title}
+        />
+      )}
     </>
   );
 }

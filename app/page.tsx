@@ -22,7 +22,7 @@ const PROPERTY_FIELDS = /* GraphQL */ `
   id slug title description status property_type price price_period
   bedrooms bathrooms toilets parking size_sqm city neighbourhood
   features map_embed_url is_featured is_investment investment_note
-  partner_id agent_id created_at updated_at
+  partner_id agent_id created_at updated_at plot_options payment_terms
   property_images(order_by: { sort_order: asc }) {
     id property_id storage_path alt sort_order
   }
@@ -218,7 +218,7 @@ async function AboutTeaser() {
           </p>
           <Link
             href="/about"
-            className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-accent hover:text-accent-deep transition-colors"
+            className="mt-6 inline-flex min-h-11 items-center gap-2 text-sm font-medium text-accent hover:text-accent-deep transition-colors"
           >
             More about me
             <ArrowRight size={16} />
@@ -268,7 +268,7 @@ async function InvestmentTeaser() {
         <SectionTitle>Investment Opportunities</SectionTitle>
         <Link
           href="/invest"
-          className="text-sm font-medium text-accent hover:text-accent-deep transition-colors"
+          className="inline-flex min-h-11 items-center text-sm font-medium text-accent hover:text-accent-deep transition-colors"
         >
           Explore investments →
         </Link>
@@ -299,7 +299,7 @@ async function Partners() {
           firms across Nigeria.
         </p>
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 min-[380px]:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
         {partners.map((partner) => {
           const logoUrl = getStorageUrl(partner.logo_path);
           return (

@@ -94,7 +94,7 @@ export function ViewingForm({ propertyId, propertyTitle, isInvestment }: Viewing
   }
 
   const inputClass =
-    "w-full border border-line px-3 py-2.5 text-sm text-ink focus:border-accent focus:outline-none";
+    "min-h-11 w-full border border-line px-3 py-2.5 text-sm text-ink focus:border-accent focus:outline-none";
   const labelClass = "block text-sm font-medium text-ink mb-1.5";
   const errorClass = "text-xs text-red-600 mt-1";
 
@@ -146,7 +146,7 @@ export function ViewingForm({ propertyId, propertyTitle, isInvestment }: Viewing
         </div>
 
         {isInvestment && (
-          <label className="flex items-center gap-2 text-sm text-ink">
+          <label className="flex min-h-11 items-center gap-2 text-sm text-ink">
             <input type="checkbox" {...register("is_investing")} className="accent-accent" />
             I&apos;m interested in investing in this property
           </label>

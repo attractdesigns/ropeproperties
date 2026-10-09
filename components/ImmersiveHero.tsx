@@ -76,7 +76,7 @@ export function ImmersiveHero({ cities, heading, subheading, imageUrl }: Immersi
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent-deep">Start your search</p>
               <h2 className="mt-1 font-display text-2xl text-ink sm:text-3xl">Find the right place</h2>
             </div>
-            <Link href="/invest" className="mt-2 text-sm font-medium text-accent-deep underline underline-offset-4 hover:text-ink sm:mt-0">Looking to invest?</Link>
+            <Link href="/invest" className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-accent-deep underline underline-offset-4 hover:text-ink sm:mt-0">Looking to invest?</Link>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_auto] lg:items-end">
             <label className="text-sm font-medium text-ink">Location

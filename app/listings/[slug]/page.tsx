@@ -7,13 +7,15 @@ import { Section } from "@/components/Section";
 import { GalleryCarousel } from "@/components/GalleryCarousel";
 import { StatusBadge, InvestmentBadge } from "@/components/StatusBadge";
 import { AgentCard } from "@/components/AgentCard";
-import { MobileContactBar } from "@/components/MobileContactBar";
+import { MobileContactBar, InlineContactActions } from "@/components/MobileContactBar";
+import { PlotOptionsComparison, TermsPanel } from "@/components/PlotOptions";
 import { ViewingForm } from "@/components/forms/ViewingForm";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { gql } from "@/lib/nhost/gql";
 import { getPrimaryRealtor } from "@/lib/realtor";
 import { getStorageUrl } from "@/lib/storage";
-import { formatPriceWithPeriod } from "@/lib/format";
+import { formatPriceWithPeriod, formatPlotRange } from "@/lib/format";
+import { withImageSizes } from "@/lib/image-size";
 import type { PropertyWithRelations } from "@/lib/types";
 import { Check, MapPin, ExternalLink } from "lucide-react";
 
@@ -23,7 +25,7 @@ const PROPERTY_FIELDS = /* GraphQL */ `
   id slug title description status property_type price price_period
   bedrooms bathrooms toilets parking size_sqm city neighbourhood address
   features map_embed_url is_featured is_investment investment_note
-  partner_id agent_id created_at updated_at
+  partner_id agent_id created_at updated_at plot_options payment_terms
   property_images(order_by: { sort_order: asc }) {
     id property_id storage_path alt sort_order
   }
@@ -75,7 +77,30 @@ export default async function PropertyDetailPage({
   const property = await getProperty(slug);
   if (!property) notFound();
 
-  const primaryRealtor = property.agents ? null : await getPrimaryRealtor();
+  const [primaryRealtor, galleryImages] = await Promise.all([
+    property.agents ? null : getPrimaryRealtor(),
+    withImageSizes(property.property_images),
+  ]);
+  const contact = property.agents ?? primaryRealtor;
+  const plotOptions = property.plot_options ?? [];
+  const terms = property.payment_terms ?? null;
+
+  // Only show facts that apply: a land listing has no bedrooms to report.
+  const rawSpecs: { label: string; value: string | number | null | undefined }[] = [
+    { label: "Beds", value: property.bedrooms },
+    { label: "Baths", value: property.bathrooms },
+    { label: "Toilets", value: property.toilets },
+    { label: "Parking", value: property.parking },
+    property.size_sqm
+      ? { label: "Size", value: `${property.size_sqm} m²` }
+      : { label: "Plot sizes", value: formatPlotRange(plotOptions) },
+    { label: "Title", value: terms?.title_doc },
+    { label: "Payment plan", value: terms?.payment_plan },
+    { label: "Type", value: formatType(property.property_type) },
+  ];
+  const specs = rawSpecs.filter(
+    (s): s is { label: string; value: string | number } => s.value != null && s.value !== ""
+  );
 
   const isSold = property.status === "sold";
   const location = [property.neighbourhood, property.city].filter(Boolean).join(", ");
@@ -105,7 +130,7 @@ export default async function PropertyDetailPage({
       <Header />
       <main className="pt-16">
         <Section>
-          <GalleryCarousel images={property.property_images} />
+          <GalleryCarousel images={galleryImages} title={property.title} />
 
           <div className="mt-8 flex flex-col md:flex-row md:items-start md:justify-between gap-4">
             <div>
@@ -150,13 +175,18 @@ export default async function PropertyDetailPage({
             </div>
           )}
 
-          <div className="mt-8 grid grid-cols-2 gap-4 border-y border-line py-6 sm:grid-cols-3 md:grid-cols-6">
-            <SpecItem label="Beds" value={property.bedrooms} />
-            <SpecItem label="Baths" value={property.bathrooms} />
-            <SpecItem label="Toilets" value={property.toilets} />
-            <SpecItem label="Parking" value={property.parking} />
-            <SpecItem label="Size" value={property.size_sqm ? `${property.size_sqm} m²` : null} />
-            <SpecItem label="Type" value={formatType(property.property_type)} />
+          {!isSold && (
+            <InlineContactActions
+              phone={contact?.phone ?? null}
+              whatsapp={contact?.whatsapp ?? null}
+              context={property.title}
+            />
+          )}
+
+          <div className="mt-8 grid grid-cols-2 gap-4 border-y border-line py-6 sm:grid-cols-3 md:grid-cols-[repeat(auto-fit,minmax(110px,1fr))]">
+            {specs.map((s) => (
+              <SpecItem key={s.label} label={s.label} value={s.value} />
+            ))}
           </div>
 
           <div className="mt-8 grid md:grid-cols-3 gap-8">
@@ -165,6 +195,9 @@ export default async function PropertyDetailPage({
               <div className="text-muted leading-relaxed whitespace-pre-line">
                 {property.description}
               </div>
+
+              {plotOptions.length > 0 && <PlotOptionsComparison options={plotOptions} />}
+              {terms && <TermsPanel terms={terms} />}
 
               {property.features.length > 0 && (
                 <div className="mt-8">
@@ -206,7 +239,7 @@ export default async function PropertyDetailPage({
                   message={`Hello, I'm interested in investing in "${property.title}". Please get in touch.`}
                   label="Enquire about investing"
                   variant="solid"
-                  className="w-full justify-center"
+                  className="hidden w-full justify-center md:inline-flex"
                 />
               )}
 
@@ -233,22 +266,22 @@ export default async function PropertyDetailPage({
           </div>
         </Section>
       </main>
+      <Footer />
       {!isSold && (
         <MobileContactBar
-          phone={(property.agents ?? primaryRealtor)?.phone ?? null}
-          whatsapp={(property.agents ?? primaryRealtor)?.whatsapp ?? null}
+          phone={contact?.phone ?? null}
+          whatsapp={contact?.whatsapp ?? null}
           context={property.title}
         />
       )}
-      <Footer />
     </>
   );
 }
 
-function SpecItem({ label, value }: { label: string; value: number | string | null }) {
+function SpecItem({ label, value }: { label: string; value: number | string }) {
   return (
-    <div className="text-center">
-      <p className="font-display text-xl text-ink">{value ?? "—"}</p>
+    <div className="min-w-0 text-center">
+      <p className="font-display text-lg text-ink break-words sm:text-xl">{value}</p>
       <p className="text-xs text-muted uppercase tracking-wide mt-1">{label}</p>
     </div>
   );

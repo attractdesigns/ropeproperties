@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ImageManager, type UploadedImage } from "@/components/admin/ImageManager";
 import { slugify } from "@/lib/format";
-import type { Agent, PartnerCompany } from "@/lib/types";
+import type { Agent, PartnerCompany, PlotOption, PaymentTerms } from "@/lib/types";
 
 interface ListingFormProps {
   property?: {
@@ -32,6 +32,8 @@ interface ListingFormProps {
     investment_note: string | null;
     partner_id: string | null;
     agent_id: string | null;
+    plot_options?: PlotOption[] | null;
+    payment_terms?: PaymentTerms | null;
   };
   images?: UploadedImage[];
   agents: Agent[];
@@ -49,6 +51,25 @@ export function ListingForm({ property, images: existingImages, agents, partners
   const [images, setImages] = useState<UploadedImage[]>(existingImages ?? []);
   const [features, setFeatures] = useState<string[]>(property?.features ?? []);
   const [featureInput, setFeatureInput] = useState("");
+
+  // Land listings: plot rows are edited as strings and parsed on save.
+  type PlotRow = { size_sqm: string; price: string; initial_deposit: string; suggested_use: string };
+  const [plots, setPlots] = useState<PlotRow[]>(
+    (property?.plot_options ?? []).map((o) => ({
+      size_sqm: String(o.size_sqm),
+      price: String(o.price),
+      initial_deposit: o.initial_deposit != null ? String(o.initial_deposit) : "",
+      suggested_use: o.suggested_use ?? "",
+    }))
+  );
+  const [terms, setTerms] = useState({
+    title_doc: property?.payment_terms?.title_doc ?? "",
+    payment_plan: property?.payment_terms?.payment_plan ?? "",
+    highlights: (property?.payment_terms?.highlights ?? []).join("\n"),
+    disclaimer: property?.payment_terms?.disclaimer ?? "",
+  });
+  const updatePlot = (i: number, field: keyof PlotRow, value: string) =>
+    setPlots((rows) => rows.map((r, j) => (j === i ? { ...r, [field]: value } : r)));
 
   const [form, setForm] = useState({
     title: property?.title ?? "",
@@ -127,6 +148,23 @@ export function ListingForm({ property, images: existingImages, agents, partners
         investment_note: form.is_investment ? form.investment_note : null,
         partner_id: form.partner_id || null,
         agent_id: form.agent_id || null,
+        plot_options: plots
+          .filter((r) => parseFloat(r.size_sqm) > 0 && parseFloat(r.price) > 0)
+          .map((r) => ({
+            size_sqm: parseFloat(r.size_sqm),
+            price: parseFloat(r.price),
+            initial_deposit: r.initial_deposit ? parseFloat(r.initial_deposit) : null,
+            suggested_use: r.suggested_use.trim() || null,
+          })),
+        payment_terms:
+          terms.title_doc || terms.payment_plan || terms.highlights.trim() || terms.disclaimer
+            ? {
+                title_doc: terms.title_doc.trim() || null,
+                payment_plan: terms.payment_plan.trim() || null,
+                highlights: terms.highlights.split("\n").map((l) => l.trim()).filter(Boolean),
+                disclaimer: terms.disclaimer.trim() || null,
+              }
+            : null,
         images,
       };
 
@@ -297,6 +335,56 @@ export function ListingForm({ property, images: existingImages, agents, partners
                 </span>
               ))}
             </div>
+          </div>
+        </div>
+
+        {/* Land plots & payment terms */}
+        <div className="bg-white border border-line p-6 space-y-4">
+          <div>
+            <h2 className="font-display text-lg text-ink">Plot options &amp; payment terms</h2>
+            <p className="text-xs text-muted mt-1">
+              Optional. Shown as a comparison table with a highlighted terms panel. Leave empty for ordinary listings.
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            {plots.map((r, i) => (
+              <div key={i} className="grid grid-cols-2 gap-2 border border-line p-3 sm:grid-cols-5">
+                <input className={inputClass} type="number" placeholder="Size m²" aria-label={`Plot ${i + 1} size in square metres`} value={r.size_sqm} onChange={(e) => updatePlot(i, "size_sqm", e.target.value)} />
+                <input className={inputClass} type="number" placeholder="Price ₦" aria-label={`Plot ${i + 1} price`} value={r.price} onChange={(e) => updatePlot(i, "price", e.target.value)} />
+                <input className={inputClass} type="number" placeholder="Deposit ₦" aria-label={`Plot ${i + 1} initial deposit`} value={r.initial_deposit} onChange={(e) => updatePlot(i, "initial_deposit", e.target.value)} />
+                <input className={`${inputClass} col-span-2 sm:col-span-1`} placeholder="Suggested use" aria-label={`Plot ${i + 1} suggested use`} value={r.suggested_use} onChange={(e) => updatePlot(i, "suggested_use", e.target.value)} />
+                <button type="button" onClick={() => setPlots(plots.filter((_, j) => j !== i))} className="text-sm hover:text-red-600" aria-label={`Remove plot ${i + 1}`}>
+                  Remove
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => setPlots([...plots, { size_sqm: "", price: "", initial_deposit: "", suggested_use: "" }])}
+              className="bg-surface border border-line px-3 py-1.5 text-sm"
+            >
+              Add plot size
+            </button>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className={labelClass}>Title document</label>
+              <input className={inputClass} value={terms.title_doc} onChange={(e) => setTerms({ ...terms, title_doc: e.target.value })} placeholder="e.g. Government-allocated C of O" />
+            </div>
+            <div>
+              <label className={labelClass}>Payment plan (short)</label>
+              <input className={inputClass} value={terms.payment_plan} onChange={(e) => setTerms({ ...terms, payment_plan: e.target.value })} placeholder="e.g. 6 months interest-free" />
+            </div>
+          </div>
+          <div>
+            <label className={labelClass}>Terms (one per line)</label>
+            <textarea className={inputClass} rows={5} value={terms.highlights} onChange={(e) => setTerms({ ...terms, highlights: e.target.value })} />
+          </div>
+          <div>
+            <label className={labelClass}>Closing note</label>
+            <input className={inputClass} value={terms.disclaimer} onChange={(e) => setTerms({ ...terms, disclaimer: e.target.value })} placeholder="e.g. Confirm prices and documents before commitment." />
           </div>
         </div>
 

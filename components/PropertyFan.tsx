@@ -1,9 +1,10 @@
-import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, MapPin } from "lucide-react";
+import { ArrowRight, MapPin, Bed, Bath, Maximize } from "lucide-react";
 import type { PropertyWithRelations } from "@/lib/types";
 import { getStorageUrl } from "@/lib/storage";
-import { formatPriceCompactWithPeriod } from "@/lib/format";
+import { formatPriceCompactWithPeriod, formatPlotRange } from "@/lib/format";
+import { SmartImage } from "./SmartImage";
+import { FeaturedTrack } from "./FeaturedTrack";
 
 const statusLabels: Record<string, string> = {
   for_sale: "For Sale",
@@ -23,7 +24,7 @@ export function PropertyFan({ properties }: { properties: PropertyWithRelations[
 
   return (
     <section className="relative isolate" style={{ backgroundColor: BAND }}>
-      <div className="relative mx-auto max-w-[1200px] px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+      <div className="relative mx-auto max-w-[1200px] px-4 py-20 sm:px-6 lg:px-8 lg:py-24">
         <div className="text-center">
           <p className="text-[10px] uppercase tracking-[0.3em] text-white/45">Featured</p>
           <h2 className="mt-3 font-display italic text-3xl sm:text-4xl text-white">
@@ -31,83 +32,90 @@ export function PropertyFan({ properties }: { properties: PropertyWithRelations[
           </h2>
         </div>
 
-        {/* Flat aligned row — every card shares a baseline, so the band needs no
-            reserved space underneath for staggered offsets. */}
-        <div className="mt-10 flex snap-x snap-mandatory gap-4 overflow-x-auto px-1 pb-4 sm:gap-5 lg:mt-12 lg:grid lg:grid-cols-4 lg:items-stretch lg:overflow-visible lg:px-0">
+        <FeaturedTrack>
           {cards.map((property) => {
             const cover = property.property_images?.[0];
-            const imageUrl =
-              getStorageUrl(cover?.storage_path) ?? "/images/placeholder-property.svg";
+            const imageUrl = getStorageUrl(cover?.storage_path);
             const location = [property.neighbourhood, property.city]
               .filter(Boolean)
               .join(", ");
-            const specs = [
-              property.bedrooms != null ? `${property.bedrooms} Beds` : null,
-              property.bathrooms != null ? `${property.bathrooms} Baths` : null,
-              property.size_sqm != null ? `${property.size_sqm} sq m` : null,
-            ].filter(Boolean);
+            const sizeLabel =
+              property.size_sqm != null
+                ? `${property.size_sqm} sq m`
+                : formatPlotRange(property.plot_options);
+            const facts = [
+              property.bedrooms != null && { Icon: Bed, label: `${property.bedrooms} Beds` },
+              property.bathrooms != null && { Icon: Bath, label: `${property.bathrooms} Baths` },
+              sizeLabel && { Icon: Maximize, label: sizeLabel },
+            ].filter(Boolean) as { Icon: typeof Bed; label: string }[];
 
             return (
               <Link
                 key={property.id}
                 href={`/listings/${property.slug}`}
-                className="group flex w-[min(82vw,330px)] shrink-0 snap-start flex-col overflow-hidden rounded-2xl bg-alpine-card shadow-[0_30px_70px_-25px_rgba(0,0,0,0.85)] transition-transform duration-500 hover:-translate-y-1.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white lg:w-auto"
+                className="group flex w-[calc(100vw-32px)] shrink-0 snap-center snap-always flex-col overflow-hidden rounded-[20px] border border-white/10 bg-alpine-card shadow-[0_20px_50px_-20px_rgba(0,0,0,0.7)] transition-transform duration-500 hover:-translate-y-1.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white lg:w-auto"
               >
-                {/* Replaces the decorative phone chrome that used to sit here —
-                    same slot, real data. Status and price are therefore not
-                    repeated in the detail block below. */}
-                <div className="flex items-center justify-between gap-3 px-4 py-3 text-[10px] uppercase tracking-[0.18em]">
-                  <span className="text-alpine-ice">
+                <div className="relative aspect-[4/3] w-full overflow-hidden bg-alpine-slate">
+                  <SmartImage
+                    src={imageUrl}
+                    alt={cover?.alt || property.title}
+                    title={property.title}
+                    sizes="(max-width: 1024px) calc(100vw - 32px), 280px"
+                    className="transition-transform duration-700 group-hover:scale-105"
+                  />
+                  <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/45 to-transparent" />
+                  <span className="absolute left-3 top-3 rounded-full bg-black/55 px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.14em] text-alpine-ice backdrop-blur-sm">
                     {statusLabels[property.status] ?? property.status}
                   </span>
-                  <span className="tracking-[0.12em] text-white">
+                  <span className="absolute right-3 top-3 rounded-full bg-white px-3 py-1.5 text-sm font-semibold text-alpine-void shadow-md">
                     {formatPriceCompactWithPeriod(property.price, property.price_period)}
                   </span>
                 </div>
 
-                <div className="relative aspect-[4/3] w-full overflow-hidden">
-                  <Image
-                    src={imageUrl}
-                    alt={cover?.alt ?? property.title}
-                    fill
-                    sizes="(max-width: 1024px) 82vw, 280px"
-                    className="object-cover transition-transform duration-700 group-hover:scale-105"
-                  />
-                </div>
-
-                <div className="flex flex-1 flex-col px-4 py-4">
-                  <h3 className="font-display text-base uppercase tracking-wide text-white line-clamp-1">
+                <div className="flex flex-1 flex-col p-5">
+                  <h3 className="font-display text-[23px] leading-tight text-white line-clamp-2 lg:text-lg">
                     {property.title}
                   </h3>
-                  {specs.length > 0 && (
-                    <p className="mt-1.5 text-[11px] text-alpine-ice/85">
-                      {specs.join(" | ")}
+                  {location && (
+                    <p className="mt-2 flex items-center gap-1.5 text-sm text-white/65">
+                      <MapPin size={14} className="shrink-0 text-white/45" aria-hidden />
+                      <span className="line-clamp-1">{location}</span>
                     </p>
                   )}
-                  <p className="mt-3 text-xs leading-relaxed text-white/55 line-clamp-3">
-                    {property.description}
-                  </p>
 
-                  <div className="mt-auto pt-5">
-                    {location && (
-                      <span className="flex items-center gap-2 text-[11px] text-white/55">
-                        <MapPin size={12} className="shrink-0 text-white/35" />
-                        <span className="truncate">{location}</span>
-                      </span>
-                    )}
-                    <span className="mt-3 inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] text-white transition-colors group-hover:text-alpine-ice">
-                      Property Details
-                      <ArrowRight
-                        size={12}
-                        className="transition-transform duration-300 group-hover:translate-x-1"
-                      />
-                    </span>
-                  </div>
+                  {facts.length > 0 && (
+                    <ul className="mt-4 flex flex-wrap gap-2">
+                      {facts.map(({ Icon, label }) => (
+                        <li
+                          key={label}
+                          className="inline-flex items-center gap-1.5 rounded-full bg-white/[0.07] px-3 py-1.5 text-xs text-alpine-ice"
+                        >
+                          <Icon size={14} aria-hidden />
+                          {label}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+
+                  {property.description && (
+                    <p className="mt-4 text-sm leading-relaxed text-white/60 line-clamp-3">
+                      {property.description}
+                    </p>
+                  )}
+
+                  <span className="mt-auto flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-white px-4 text-sm font-medium text-alpine-void transition-colors group-hover:bg-alpine-ice [margin-top:1.5rem]">
+                    View property
+                    <ArrowRight
+                      size={16}
+                      className="transition-transform duration-300 group-hover:translate-x-1"
+                      aria-hidden
+                    />
+                  </span>
                 </div>
               </Link>
             );
           })}
-        </div>
+        </FeaturedTrack>
 
         <div className="mt-12 text-center">
           <Link

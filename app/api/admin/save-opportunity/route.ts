@@ -27,6 +27,10 @@ export async function POST(request: NextRequest) {
     map_embed_url: oppData.map_embed_url,
     is_featured: oppData.is_featured,
     agent_id: oppData.agent_id || null,
+    advertised_returns:
+      Array.isArray(oppData.advertised_returns) && oppData.advertised_returns.length > 0
+        ? oppData.advertised_returns
+        : null,
   };
 
   let opportunityId: string;

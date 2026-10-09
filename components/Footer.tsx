@@ -50,12 +50,12 @@ export function Footer() {
             <h3 className="text-xs uppercase tracking-[0.18em] text-muted mb-4">
               Explore
             </h3>
-            <ul className="space-y-2.5">
+            <ul>
               {navLinks.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="text-sm text-ink hover:text-accent transition-colors"
+                    className="inline-flex min-h-11 min-w-11 items-center text-sm text-ink hover:text-accent transition-colors"
                   >
                     {link.label}
                   </Link>
@@ -69,16 +69,16 @@ export function Footer() {
             <h3 className="text-xs uppercase tracking-[0.18em] text-muted mb-4">
               Contact
             </h3>
-            <ul className="space-y-3 text-sm">
+            <ul className="text-sm">
               <li className="flex items-start gap-2.5 text-ink">
                 <MapPin size={16} className="text-accent mt-0.5 shrink-0" />
-                <a href={MAP_LINK} target="_blank" rel="noopener noreferrer" className="hover:text-accent transition-colors">
+                <a href={MAP_LINK} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 min-w-11 items-center hover:text-accent transition-colors">
                   {OFFICE_ADDRESS}
                 </a>
               </li>
               <li className="flex items-center gap-2.5">
                 <Phone size={16} className="text-accent shrink-0" />
-                <a href={`tel:${PHONE_TEL}`} className="text-ink hover:text-accent transition-colors">
+                <a href={`tel:${PHONE_TEL}`} className="inline-flex min-h-11 min-w-11 items-center break-all text-ink hover:text-accent transition-colors">
                   {PHONE}
                 </a>
               </li>
@@ -88,20 +88,20 @@ export function Footer() {
                   href={`https://wa.me/${WHATSAPP}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-ink hover:text-accent transition-colors"
+                  className="inline-flex min-h-11 min-w-11 items-center break-all text-ink hover:text-accent transition-colors"
                 >
                   Chat on WhatsApp
                 </a>
               </li>
               <li className="flex items-center gap-2.5">
                 <Mail size={16} className="text-accent shrink-0" />
-                <a href={`mailto:${EMAIL}`} className="text-ink hover:text-accent transition-colors">
+                <a href={`mailto:${EMAIL}`} className="inline-flex min-h-11 min-w-11 items-center break-all text-ink hover:text-accent transition-colors">
                   {EMAIL}
                 </a>
               </li>
             </ul>
             {/* Socials */}
-            <div className="mt-5 flex gap-2">
+            <div className="mt-3 flex gap-2">
               <SocialIcon href="https://instagram.com" label="Instagram">
                 <Instagram size={16} />
               </SocialIcon>
@@ -120,9 +120,9 @@ export function Footer() {
           <p className="text-xs text-muted">
             © {new Date().getFullYear()} {BUSINESS_NAME}. All rights reserved.
           </p>
-          <nav aria-label="Legal" className="flex flex-wrap gap-x-5 gap-y-2 text-xs text-muted">
+          <nav aria-label="Legal" className="flex flex-wrap gap-x-5 text-xs text-muted">
             {legalLinks.map((link) => (
-              <Link key={link.href} href={link.href} className="hover:text-accent transition-colors">
+              <Link key={link.href} href={link.href} className="inline-flex min-h-11 min-w-11 items-center hover:text-accent transition-colors">
                 {link.label}
               </Link>
             ))}
@@ -140,7 +140,7 @@ function SocialIcon({ href, label, children }: { href: string; label: string; ch
       target="_blank"
       rel="noopener noreferrer"
       aria-label={label}
-      className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted hover:border-accent hover:text-accent transition-colors"
+      className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-line text-muted hover:border-accent hover:text-accent transition-colors"
     >
       {children}
     </a>

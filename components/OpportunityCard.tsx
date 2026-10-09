@@ -1,10 +1,10 @@
 import Link from "next/link";
-import Image from "next/image";
 import { MapPin, TrendingUp, Clock, Wallet } from "lucide-react";
 import type { InvestmentWithRelations } from "@/lib/types";
 import { formatPriceCompact } from "@/lib/format";
 import { getStorageUrl } from "@/lib/storage";
 import { InvestmentStatusBadge } from "./StatusBadge";
+import { SmartImage } from "./SmartImage";
 
 interface OpportunityCardProps {
   opportunity: InvestmentWithRelations;
@@ -20,7 +20,7 @@ const typeLabels: Record<string, string> = {
 
 export function OpportunityCard({ opportunity }: OpportunityCardProps) {
   const coverImage = opportunity.investment_images?.[0];
-  const imageUrl = getStorageUrl(coverImage?.storage_path) ?? "/images/placeholder-property.svg";
+  const imageUrl = getStorageUrl(coverImage?.storage_path);
 
   const location = [opportunity.neighbourhood, opportunity.city]
     .filter(Boolean)
@@ -29,12 +29,11 @@ export function OpportunityCard({ opportunity }: OpportunityCardProps) {
   return (
     <Link href={`/invest/${opportunity.slug}`} className="group block">
       <div className="img-hover relative aspect-[4/3] bg-surface border border-line">
-        <Image
+        <SmartImage
           src={imageUrl}
-          alt={coverImage?.alt ?? opportunity.title}
-          fill
+          alt={coverImage?.alt || opportunity.title}
+          title={opportunity.title}
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 400px"
-          className="object-cover"
         />
         <div className="absolute top-3 left-3 flex gap-2">
           <span className="inline-flex items-center px-2.5 py-1 text-xs font-medium uppercase tracking-wide bg-accent-tint text-accent-deep">

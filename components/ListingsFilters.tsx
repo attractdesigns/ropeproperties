@@ -108,7 +108,7 @@ export function ListingsFilters({ cities, currentParams, totalCount }: ListingsF
           {/* Mobile filter trigger */}
           <button
             onClick={() => setMobileOpen(true)}
-            className="inline-flex items-center gap-2 rounded-full border border-line bg-bg px-4 py-2 text-sm font-medium text-ink md:hidden"
+            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-line bg-bg px-4 py-2 text-sm font-medium text-ink md:hidden"
           >
             <SlidersHorizontal size={14} />
             Filters
