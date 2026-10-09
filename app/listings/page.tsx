@@ -74,7 +74,7 @@ async function getProperties(searchParams: SearchParams): Promise<PropertyWithRe
   }
 
   const data = await gql<{ properties: PropertyWithRelations[] }>(`
-    query Listings($where: properties_bool_exp, $order_by: [properties_order_by!]) {
+    query Listings($where: properties_bool_exp, $order_by: properties_order_by!) {
       properties(where: $where, order_by: [$order_by]) { ${PROPERTY_FIELDS} }
     }
   `, { where, order_by: orderBy });
