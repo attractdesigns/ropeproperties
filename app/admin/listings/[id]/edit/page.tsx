@@ -13,7 +13,7 @@ async function getProperty(id: string) {
         id title slug description status property_type price price_period
         bedrooms bathrooms toilets parking size_sqm city neighbourhood address
         features map_embed_url is_featured is_investment investment_note
-        partner_id agent_id created_at updated_at
+        partner_id agent_id created_at updated_at plot_options payment_terms
         property_images(order_by: { sort_order: asc }) {
           id property_id storage_path alt sort_order
         }

@@ -36,6 +36,11 @@ export async function POST(request: NextRequest) {
     investment_note: propertyData.investment_note,
     partner_id: propertyData.partner_id || null,
     agent_id: propertyData.agent_id || null,
+    plot_options:
+      Array.isArray(propertyData.plot_options) && propertyData.plot_options.length > 0
+        ? propertyData.plot_options
+        : null,
+    payment_terms: propertyData.payment_terms ?? null,
   };
 
   let propertyId: string;

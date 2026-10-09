@@ -6,6 +6,8 @@ interface SpecIconsProps {
   toilets?: number | null;
   parking?: number | null;
   sizeSqm?: number | null;
+  /** Land listings: e.g. "300 – 1,000 m²" instead of a single size. */
+  plotRange?: string | null;
   propertyType?: string;
   compact?: boolean;
 }
@@ -16,6 +18,7 @@ export function SpecIcons({
   toilets,
   parking,
   sizeSqm,
+  plotRange,
   propertyType,
   compact = false,
 }: SpecIconsProps) {
@@ -52,6 +55,12 @@ export function SpecIcons({
         <span className="inline-flex items-center gap-1">
           <Maximize size={iconSize} />
           <span className={textSize}>{sizeSqm} m²</span>
+        </span>
+      )}
+      {sizeSqm == null && plotRange && (
+        <span className="inline-flex items-center gap-1">
+          <Maximize size={iconSize} />
+          <span className={textSize}>{plotRange}</span>
         </span>
       )}
       {propertyType && (

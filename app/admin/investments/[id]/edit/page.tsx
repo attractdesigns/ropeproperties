@@ -12,6 +12,7 @@ async function getOpportunity(id: string) {
       investment_opportunities(where: { id: { _eq: $id } }, limit: 1) {
         id title slug description status investment_type city neighbourhood
         roi_range min_entry duration map_embed_url is_featured agent_id created_at updated_at
+        advertised_returns
         investment_images(order_by: { sort_order: asc }) {
           id opportunity_id storage_path alt sort_order
         }

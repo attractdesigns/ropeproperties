@@ -111,6 +111,21 @@ export function formatArea(sqm: number | null | undefined): string {
 }
 
 /**
+ * Summarise a land listing's plot sizes.
+ * @example formatPlotRange([{size_sqm:300},{size_sqm:1000}]) → "300 – 1,000 m²"
+ */
+export function formatPlotRange(
+  options: { size_sqm: number }[] | null | undefined
+): string | null {
+  if (!options || options.length === 0) return null;
+  const sizes = options.map((o) => o.size_sqm);
+  const min = Math.min(...sizes);
+  const max = Math.max(...sizes);
+  const f = (n: number) => n.toLocaleString("en-NG");
+  return min === max ? `${f(min)} m²` : `${f(min)} – ${f(max)} m²`;
+}
+
+/**
  * Generate a URL-friendly slug from a title.
  */
 export function slugify(text: string): string {

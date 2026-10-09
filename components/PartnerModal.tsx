@@ -51,7 +51,7 @@ export function PartnerModal({ partner, triggerLabel = "Learn more" }: PartnerMo
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="mt-3 inline-flex items-center gap-1 text-sm text-accent hover:text-accent-deep transition-colors"
+        className="mt-1 inline-flex min-h-11 items-center gap-1 text-sm text-accent hover:text-accent-deep transition-colors"
       >
         {triggerLabel} <ArrowRight size={12} />
       </button>

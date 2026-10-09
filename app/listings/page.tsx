@@ -25,7 +25,7 @@ const PROPERTY_FIELDS = /* GraphQL */ `
   id slug title description status property_type price price_period
   bedrooms bathrooms toilets parking size_sqm city neighbourhood
   features map_embed_url is_featured is_investment investment_note
-  partner_id agent_id created_at updated_at
+  partner_id agent_id created_at updated_at plot_options payment_terms
   property_images(order_by: { sort_order: asc }) {
     id property_id storage_path alt sort_order
   }

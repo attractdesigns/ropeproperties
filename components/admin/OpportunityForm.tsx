@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ImageManager, type UploadedImage } from "@/components/admin/ImageManager";
 import { slugify } from "@/lib/format";
-import type { Agent } from "@/lib/types";
+import type { Agent, AdvertisedReturn } from "@/lib/types";
 
 interface OpportunityFormProps {
   opportunity?: {
@@ -23,6 +23,7 @@ interface OpportunityFormProps {
     map_embed_url: string | null;
     is_featured: boolean;
     agent_id: string | null;
+    advertised_returns?: AdvertisedReturn[] | null;
   };
   images?: UploadedImage[];
   agents: Agent[];
@@ -37,6 +38,7 @@ export function OpportunityForm({ opportunity, images: existingImages, agents }:
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [images, setImages] = useState<UploadedImage[]>(existingImages ?? []);
+  const [returns, setReturns] = useState<AdvertisedReturn[]>(opportunity?.advertised_returns ?? []);
 
   const [form, setForm] = useState({
     title: opportunity?.title ?? "",
@@ -85,6 +87,8 @@ export function OpportunityForm({ opportunity, images: existingImages, agents }:
         map_embed_url: form.map_embed_url || null,
         is_featured: form.is_featured,
         agent_id: form.agent_id || null,
+        // Blank rows are dropped; an empty list clears the field.
+        advertised_returns: returns.filter((r) => r.term.trim() && r.return.trim()),
         images,
       };
 
@@ -177,6 +181,48 @@ export function OpportunityForm({ opportunity, images: existingImages, agents }:
               <label className={labelClass}>Map Embed URL</label>
               <input className={inputClass} value={form.map_embed_url} onChange={(e) => handleChange("map_embed_url", e.target.value)} />
             </div>
+          </div>
+
+          <div>
+            <label className={labelClass}>Developer-advertised returns (optional)</label>
+            <p className="mb-2 text-xs text-muted">
+              Shown on the page as developer-advertised, not guaranteed. Example: term &ldquo;6 months&rdquo;, return &ldquo;20%&rdquo;.
+            </p>
+            <div className="space-y-2">
+              {returns.map((r, i) => (
+                <div key={i} className="flex gap-2">
+                  <input
+                    className={inputClass}
+                    value={r.term}
+                    placeholder="Term, e.g. 12 months"
+                    aria-label={`Return ${i + 1} term`}
+                    onChange={(e) => setReturns(returns.map((x, j) => (j === i ? { ...x, term: e.target.value } : x)))}
+                  />
+                  <input
+                    className={inputClass}
+                    value={r.return}
+                    placeholder="Return, e.g. 45%"
+                    aria-label={`Return ${i + 1} percentage`}
+                    onChange={(e) => setReturns(returns.map((x, j) => (j === i ? { ...x, return: e.target.value } : x)))}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setReturns(returns.filter((_, j) => j !== i))}
+                    className="px-2 text-sm hover:text-red-600"
+                    aria-label={`Remove return ${i + 1}`}
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => setReturns([...returns, { term: "", return: "" }])}
+              className="mt-2 bg-surface border border-line px-3 py-1.5 text-sm"
+            >
+              Add return
+            </button>
           </div>
 
           <div>

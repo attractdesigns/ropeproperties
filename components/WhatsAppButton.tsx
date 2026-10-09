@@ -29,7 +29,7 @@ export function WhatsAppButton({
       target="_blank"
       rel="noopener noreferrer"
       className={cn(
-        "inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors",
+        "inline-flex min-h-11 items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors",
         variant === "solid"
           ? "bg-accent text-white hover:bg-accent-deep"
           : "border border-line text-ink hover:border-accent hover:text-accent",

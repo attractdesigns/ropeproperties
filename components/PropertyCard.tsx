@@ -1,11 +1,12 @@
 import Link from "next/link";
-import Image from "next/image";
 import { MapPin, Camera } from "lucide-react";
 import type { PropertyWithRelations } from "@/lib/types";
 import { formatPriceCompactWithPeriod } from "@/lib/format";
 import { getStorageUrl } from "@/lib/storage";
 import { StatusBadge, InvestmentBadge } from "./StatusBadge";
 import { SpecIcons } from "./SpecIcons";
+import { SmartImage } from "./SmartImage";
+import { formatPlotRange } from "@/lib/format";
 
 interface PropertyCardProps {
   property: PropertyWithRelations;
@@ -13,7 +14,7 @@ interface PropertyCardProps {
 
 export function PropertyCard({ property }: PropertyCardProps) {
   const coverImage = property.property_images?.[0];
-  const imageUrl = getStorageUrl(coverImage?.storage_path) ?? "/images/placeholder-property.svg";
+  const imageUrl = getStorageUrl(coverImage?.storage_path);
   const imageCount = property.property_images?.length ?? 0;
 
   const location = [property.neighbourhood, property.city]
@@ -26,12 +27,11 @@ export function PropertyCard({ property }: PropertyCardProps) {
       className="group block rounded-xl border border-line bg-bg overflow-hidden card-lift focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
     >
       <div className="img-hover relative aspect-[4/3] bg-surface">
-        <Image
+        <SmartImage
           src={imageUrl}
-          alt={coverImage?.alt ?? property.title}
-          fill
+          alt={coverImage?.alt || property.title}
+          title={property.title}
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 400px"
-          className="object-cover"
         />
         {/* Soft gradient so the top-left pill always reads */}
         <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/35 to-transparent" />
@@ -82,6 +82,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
             bedrooms={property.bedrooms}
             bathrooms={property.bathrooms}
             sizeSqm={property.size_sqm}
+            plotRange={formatPlotRange(property.plot_options)}
             compact
           />
         </div>

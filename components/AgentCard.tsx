@@ -4,6 +4,7 @@ import type { Agent } from "@/lib/types";
 import { getStorageUrl } from "@/lib/storage";
 import { WhatsAppButton } from "./WhatsAppButton";
 import { formatPhoneDisplay } from "@/lib/format";
+import { ExpandableText } from "./ExpandableText";
 
 interface AgentCardProps {
   agent: Agent | null;
@@ -49,13 +50,15 @@ export function AgentCard({ agent, context }: AgentCardProps) {
         </div>
       </div>
 
-      {agent.bio && <p className="mt-4 text-sm text-muted leading-relaxed">{agent.bio}</p>}
+      {agent.bio && (
+        <ExpandableText text={agent.bio} className="mt-4 text-sm text-muted leading-relaxed" />
+      )}
 
-      <div className="mt-4 space-y-2">
+      <div className="mt-2">
         {agent.phone && (
           <a
             href={`tel:${agent.phone.replace(/\s/g, "")}`}
-            className="flex items-center gap-2 text-sm text-ink hover:text-accent transition-colors"
+            className="flex min-h-11 items-center gap-2 break-all text-sm text-ink hover:text-accent transition-colors"
           >
             <Phone size={14} className="text-accent" />
             {formatPhoneDisplay(agent.phone)}
@@ -64,7 +67,7 @@ export function AgentCard({ agent, context }: AgentCardProps) {
         {agent.email && (
           <a
             href={`mailto:${agent.email}`}
-            className="flex items-center gap-2 text-sm text-ink hover:text-accent transition-colors"
+            className="flex min-h-11 items-center gap-2 break-all text-sm text-ink hover:text-accent transition-colors"
           >
             <Mail size={14} className="text-accent" />
             {agent.email}

@@ -92,7 +92,7 @@ export function InvestmentInterestForm({
   }
 
   const inputClass =
-    "w-full border border-line px-3 py-2.5 text-sm text-ink focus:border-accent focus:outline-none";
+    "min-h-11 w-full border border-line px-3 py-2.5 text-sm text-ink focus:border-accent focus:outline-none";
   const labelClass = "block text-sm font-medium text-ink mb-1.5";
   const errorClass = "text-xs text-red-600 mt-1";
 
