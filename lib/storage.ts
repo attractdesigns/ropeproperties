@@ -16,7 +16,7 @@ export function getStorageUrl(path: string | null | undefined): string | null {
     const subdomain = process.env.NEXT_PUBLIC_NHOST_SUBDOMAIN;
     const region = process.env.NEXT_PUBLIC_NHOST_REGION;
     if (!subdomain || !region) return null;
-    return `https://${subdomain}.storage.${region}.nhost.run/v1/files/${path}/public`;
+    return `https://${subdomain}.storage.${region}.nhost.run/v1/files/${path}`;
   }
 
   // Old Supabase storage path — images were lost when the project was deleted.

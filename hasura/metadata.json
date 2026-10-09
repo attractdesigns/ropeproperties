@@ -1179,6 +1179,24 @@
                 }
               }
             }
+          ],
+          "select_permissions": [
+            {
+              "role": "public",
+              "permission": {
+                "columns": [
+                  "id",
+                  "cache_control",
+                  "download_expiration",
+                  "max_upload_file_size",
+                  "min_upload_file_size",
+                  "presigned_urls_enabled",
+                  "created_at",
+                  "updated_at"
+                ],
+                "filter": {}
+              }
+            }
           ]
         },
         {
@@ -1253,6 +1271,27 @@
               "name": "bucket",
               "using": {
                 "foreign_key_constraint_on": "bucket_id"
+              }
+            }
+          ],
+          "select_permissions": [
+            {
+              "role": "public",
+              "permission": {
+                "columns": [
+                  "id",
+                  "created_at",
+                  "updated_at",
+                  "bucket_id",
+                  "name",
+                  "size",
+                  "mime_type",
+                  "etag",
+                  "is_uploaded",
+                  "uploaded_by_user_id",
+                  "metadata"
+                ],
+                "filter": {}
               }
             }
           ]
