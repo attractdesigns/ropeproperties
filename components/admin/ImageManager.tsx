@@ -48,7 +48,7 @@ export function ImageManager({ images, onChange, uploadPrefix }: ImageManagerPro
 
     onChange([...images, ...newImages]);
     setUploading(false);
-  }, [images, onChange, uploadPrefix]);
+  }, [images, onChange]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
